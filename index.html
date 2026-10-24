@@ -223,7 +223,7 @@ function startPosterLoader(){
  const apiKey=TMDB_API_KEY.trim();
  if(!apiKey||apiKey.includes('請填入'))return;
  let cache={};
- try{cache=JSON.parse(localStorage.getItem('mcu-tmdb-posters-v2')||'{}')||{}}catch(e){}
+ try{cache=JSON.parse(localStorage.getItem('mcu-tmdb-posters-v3')||'{}')||{}}catch(e){}
  const itemsById=Object.fromEntries(Object.values(MAP).map(x=>[x.id,x]));
  const pending=new Set(),queue=[];
  const setPoster=(id,url)=>{
@@ -239,10 +239,12 @@ function startPosterLoader(){
     const headers={};
     if(apiKey.includes('.'))headers.Authorization='Bearer '+apiKey;
     else url.searchParams.set('api_key',apiKey);
-    url.searchParams.set('query',item.p[1]);
+    const seasonMatch=item.p[1].match(/第\s*(\d+)\s*季/);
+    const queryTitle=seasonMatch?item.p[1].replace(/第\s*\d+\s*季/g,'').trim():item.p[1];
+    url.searchParams.set('query',queryTitle);
     url.searchParams.set('language','zh-TW');url.searchParams.set('include_adult','false');
     const response=await fetch(url,{headers});if(!response.ok)throw new Error('TMDB '+response.status);
-    const data=await response.json(),target=normTitle(item.p[1]),year=String(item.p[0]);
+    const data=await response.json(),target=normTitle(queryTitle),year=String(item.p[0]);
     const movieTypes=['M','F','S','O','P'],tvTypes=['D','N','B','E'];
     let best=null,bestScore=-999;
     for(const result of data.results||[]){
@@ -255,9 +257,19 @@ function startPosterLoader(){
      if(tvTypes.includes(item.p[2])&&result.media_type==='tv')score+=2;
      if(score>bestScore){best=result;bestScore=score}
     }
-    const poster=best&&bestScore>=5?'https://image.tmdb.org/t/p/w185'+best.poster_path:'';
+    let posterPath=best&&best.poster_path||'';
+    if(best&&best.media_type==='tv'&&seasonMatch){
+     try{
+      const seasonUrl=new URL('https://api.themoviedb.org/3/tv/'+best.id+'/season/'+seasonMatch[1]);
+      if(!apiKey.includes('.'))seasonUrl.searchParams.set('api_key',apiKey);
+      seasonUrl.searchParams.set('language','zh-TW');
+      const seasonResponse=await fetch(seasonUrl,{headers});
+      if(seasonResponse.ok){const seasonData=await seasonResponse.json();if(seasonData.poster_path)posterPath=seasonData.poster_path}
+     }catch(e){}
+    }
+    const poster=best&&bestScore>=5&&posterPath?'https://image.tmdb.org/t/p/w185'+posterPath:'';
     cache[item.id]=poster;setPoster(item.id,poster);
-    try{localStorage.setItem('mcu-tmdb-posters-v2',JSON.stringify(cache))}catch(e){}
+    try{localStorage.setItem('mcu-tmdb-posters-v3',JSON.stringify(cache))}catch(e){}
    }catch(e){/* Retry failed lookups the next time the page is opened. */}
    await new Promise(resolve=>setTimeout(resolve,350));
   }
