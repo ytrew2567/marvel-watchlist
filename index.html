@@ -35,6 +35,7 @@ details[open] summary{border-bottom:1px dashed var(--bd)}
 .t{flex:1;min-width:0}
 .it em{font-style:normal;font-size:11px;color:var(--mut);background:var(--chip);border-radius:4px;padding:1px 6px;flex:none}
 .it.done .t{color:var(--mut);text-decoration:line-through}
+.it[hidden]{display:none!important}
 .it.lock{opacity:.55;cursor:default}
 body.un .it.done{display:none}
 body.mu .it:not(.must){display:none}
@@ -43,6 +44,33 @@ body.mu .it:not(.must){display:none}
 .tabs{display:flex;gap:8px;margin:14px 0 0}.tabs button{flex:1;padding:9px}
 .note{color:var(--mut);font-size:12px;margin-top:20px}
 .opt{font-weight:500;font-size:11px;color:var(--mut);background:var(--chip);border-radius:4px;padding:1px 6px;margin-left:6px}
+
+.filters {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(130px, 0.7fr) minmax(130px, 0.7fr);
+  gap: 8px;
+  margin: 10px 0 14px;
+}
+
+.filters input,
+.filters select {
+  width: 100%;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--bd);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--fg);
+  font: inherit;
+  font-size: 13px;
+}
+
+@media (max-width: 520px) {
+  .filters {
+    grid-template-columns: 1fr;
+  }
+}
+  
 </style>
 </head>
 <body>
@@ -51,13 +79,44 @@ body.mu .it:not(.must){display:none}
 <p class="sub">依上映／首播順序整理，點一下就勾選。進度只存在這支瀏覽器。</p>
 <div class="tot"><b id="pct">0%</b><span id="cnt" class="sub"></span> <span id="cnt2" class="sub"></span><div class="bar"><i id="fill"></i></div><div class="sub" id="sy" style="margin:8px 0 0">目前只存在這支瀏覽器</div></div>
 <div class="tabs"><button id="t0">上映順序</button><button id="t1">官方時間線</button></div>
+
 <div class="ctl">
-<button id="bmu">只看必看</button>
-<button id="bun">只看未看</button>
-<button id="bop">全部展開</button>
-<button id="bcl">全部收合</button>
-<button id="brs">重置勾選</button>
+  <button id="bmu">只看必看</button>
+  <button id="bun">只看未看</button>
+  <button id="bop">全部展開</button>
+  <button id="bcl">全部收合</button>
+  <button id="brs">重置勾選</button>
 </div>
+
+<div class="filters">
+  <input
+    id="searchInput"
+    type="search"
+    placeholder="搜尋電影、影集名稱..."
+    aria-label="搜尋作品名稱"
+  >
+
+  <select id="typeFilter" aria-label="依作品類型篩選">
+    <option value="all">全部類型</option>
+    <option value="M">MCU</option>
+    <option value="F">福斯</option>
+    <option value="S">蜘蛛人／索尼</option>
+    <option value="O">其他真人電影</option>
+    <option value="D">Disney+ 影集</option>
+    <option value="N">Netflix 街頭英雄</option>
+    <option value="B">ABC 等真人影集</option>
+    <option value="A">動畫</option>
+    <option value="E">早期真人影集</option>
+    <option value="P">短片</option>
+  </select>
+
+  <select id="statusFilter" aria-label="依觀看狀態篩選">
+    <option value="all">全部觀看狀態</option>
+    <option value="unwatched">尚未觀看</option>
+    <option value="watched">已看完</option>
+  </select>
+</div>
+
 <div class="tabs" id="stabs" hidden style="margin:0 0 10px"><button id="s0">完整（電影＋影集）</button><button id="s1">只看電影</button></div><div id="list"></div><div id="tl" hidden></div><div id="tlm" hidden></div>
 <p class="note">標籤：MCU＝漫威電影宇宙；福斯＝福斯 X 戰警系列；蜘蛛人＝陶比／安德魯／索尼系列；其他＝非 MCU 的改編作品。資料更新至 2026 年 10 月 23 日，未上映作品上映後自動解鎖。非官方個人整理，片名與版權屬 Marvel Studios／Disney 所有。標示「非必需」的區塊（早期影集、短片、動畫）不計入總進度。紅框「必看」＝看《末日之戰》前建議看完的作品。「官方時間線」依 Marvel 官方 Disney+ 故事內順序排列，勾選與「上映順序」共用。</p>
 </main>
@@ -83,7 +142,7 @@ try{st=JSON.parse(localStorage.getItem(K)||'{}')||{}}catch(e){st={}}
 let push=null;
 function save(){try{localStorage.setItem(K,JSON.stringify(st))}catch(e){}if(push)push()}
 const now=new Date(),root=document.getElementById('list'),secs=[];
-const byId={},MAP={},MUST=new Set(['復仇者聯盟4：終局之戰','洛基 第1季','洛基 第2季','奇異博士2：失控多重宇宙','蟻人與黃蜂女：量子狂熱','蜘蛛人：無家日','死侍與金鋼狼','雷霆特攻隊*','驚奇4超人：第一步','蜘蛛人：重生日','美國隊長','復仇者聯盟','復仇者聯盟3：無限之戰','尚氣與十環傳奇','黑豹2：瓦干達萬歲','美國隊長：無畏新世界','瓦干達之眼','汪達幻視','獵鷹與酷寒戰士','X戰警','X戰警2','X戰警：第一戰']);
+const byId={},MAP={},ITEM={},MUST=new Set(['復仇者聯盟4：終局之戰','洛基 第1季','洛基 第2季','奇異博士2：失控多重宇宙','蟻人與黃蜂女：量子狂熱','蜘蛛人：無家日','死侍與金鋼狼','雷霆特攻隊*','驚奇4超人：第一步','蜘蛛人：重生日','美國隊長','復仇者聯盟','復仇者聯盟3：無限之戰','尚氣與十環傳奇','黑豹2：瓦干達萬歲','美國隊長：無畏新世界','瓦干達之眼','汪達幻視','獵鷹與酷寒戰士','X戰警','X戰警2','X戰警：第一戰']);
 function mk(p,id){
   const lk=p[3]&&now<new Date(p[3]),m=MUST.has(p[1]);
   const l=document.createElement('label');l.className='it'+(lk?' lock':'')+(m?' must':'');
@@ -105,7 +164,7 @@ D.forEach((s,i)=>{
   });
   sm.querySelector('.all').addEventListener('click',e=>{
     e.preventDefault();e.stopPropagation();
-    const mu=document.body.classList.contains('mu'),av=items.filter(x=>!x.lk&&(!mu||x.l.classList.contains('must'))),every=av.every(x=>st[x.id]);
+    const av=items.filter(x=>!x.lk&&!x.l.hidden),every=av.length>0&&av.every(x=>st[x.id]);
     av.forEach(x=>{every?delete st[x.id]:st[x.id]=1;x.c.checked=!every});
     save();refresh();
   });
@@ -141,23 +200,34 @@ TLD.forEach((g,k)=>{
 });
 function refresh(){
   let a=0,b=0;
-  for(const id in byId)byId[id].forEach(o=>{o.c.checked=!!st[id];o.l.classList.toggle('done',!!st[id])});
-  const mu0=document.body.classList.contains('mu');
-  tls.forEach(g=>{const it=g.items.filter(x=>!x.lk&&(!mu0||x.l.classList.contains('must')));g.n.textContent=(!it.length&&g.items.length&&!mu0)?g.items.length+' 部未上映':it.filter(x=>st[x.id]).length+' / '+it.length;g.n.parentNode.parentNode.hidden=mu0&&!it.length});
+  const mu=document.body.classList.contains('mu'),un=document.body.classList.contains('un');
+  const q=$('searchInput').value.trim().toLocaleLowerCase();
+  const type=$('typeFilter').value,status=$('statusFilter').value;
+  const matches=x=>{
+    const watched=!!st[x.id],text=(x.p[1]||'').toLocaleLowerCase();
+    return (!mu||x.l.classList.contains('must'))&&(!un||!watched)
+      &&(!q||text.includes(q))&&(type==='all'||x.p[2]===type)
+      &&(status==='all'||(status==='watched'?watched:!watched));
+  };
+  for(const id in byId)byId[id].forEach(o=>{
+    o.c.checked=!!st[id];o.l.classList.toggle('done',!!st[id]);o.l.hidden=!matches(o);
+  });
   const mi=[...MUST].map(t=>MAP[t]&&MAP[t].id).filter(Boolean);
-  document.getElementById('cnt2').textContent='必看 '+mi.filter(i=>st[i]).length+' / '+mi.length;
+  $('cnt2').textContent='必看 '+mi.filter(i=>st[i]).length+' / '+mi.length;
   secs.forEach(s=>{
-    const mu=document.body.classList.contains('mu'),av=s.items.filter(x=>!x.lk&&(!mu||x.l.classList.contains('must'))),dn=av.filter(x=>st[x.id]).length;
-    s.sm.parentNode.hidden=mu&&!av.length;
-    s.sm.querySelector('.n').textContent=(!av.length&&s.items.length&&!mu)?s.items.length+' 部未上映':dn+' / '+av.length;
+    const shown=s.items.filter(matches),av=shown.filter(x=>!x.lk),dn=av.filter(x=>st[x.id]).length;
+    s.sm.parentNode.hidden=!shown.length;
+    s.sm.querySelector('.n').textContent=(!av.length&&shown.length)?shown.length+' 部未上映':dn+' / '+av.length;
     s.sm.querySelector('.all').textContent=(av.length&&dn===av.length)?'取消':'全選';
-    s.items.forEach(x=>x.l.classList.toggle('done',!x.lk&&!!st[x.id]));
-    if(!s.o){a+=dn;b+=av.length}
+    if(!s.o){const base=s.items.filter(x=>!x.lk);a+=base.filter(x=>st[x.id]).length;b+=base.length;}
+  });
+  tls.forEach(g=>{
+    const shown=g.items.filter(matches),av=shown.filter(x=>!x.lk);
+    g.n.textContent=(!av.length&&shown.length)?shown.length+' 部未上映':av.filter(x=>st[x.id]).length+' / '+av.length;
+    g.n.parentNode.parentNode.hidden=!shown.length;
   });
   const p=b?Math.round(a/b*100):0;
-  document.getElementById('pct').textContent=p+'%';
-  document.getElementById('cnt').textContent='已看 '+a+' / '+b+' 部';
-  document.getElementById('fill').style.width=p+'%';
+  $('pct').textContent=p+'%';$('cnt').textContent='已看 '+a+' / '+b+' 部';$('fill').style.width=p+'%';
 }
 const $=id=>document.getElementById(id);
 let cur=0,sub=0;
@@ -166,7 +236,10 @@ function tab(k){cur=k;show()}
 $('s0').onclick=()=>{sub=0;show()};$('s1').onclick=()=>{sub=1;show()};
 $('t0').onclick=()=>tab(0);$('t1').onclick=()=>tab(1);tab(0);
 $('bmu').onclick=function(){document.body.classList.toggle('mu');this.classList.toggle('on');refresh()};
-$('bun').onclick=function(){document.body.classList.toggle('un');this.classList.toggle('on')};
+$('bun').onclick=function(){document.body.classList.toggle('un');this.classList.toggle('on');refresh()};
+$('searchInput').addEventListener('input',refresh);
+$('typeFilter').addEventListener('change',refresh);
+$('statusFilter').addEventListener('change',refresh);
 $('bop').onclick=()=>document.querySelectorAll('details').forEach(d=>d.open=true);
 $('bcl').onclick=()=>document.querySelectorAll('details').forEach(d=>d.open=false);
 let t;
@@ -191,7 +264,9 @@ refresh();
  let pt;
  push=()=>{clearTimeout(pt);pt=setTimeout(()=>{ref.set({done:st}).catch(()=>{$('sy').textContent='同步失敗，請稍後再試'})},600)};
  $('sy').textContent='已同步到你的 Claude 帳號（手機、電腦共用進度）';
-}catch(e){}})();
+}catch(e){$('sy').textContent='GitHub Pages 無法使用 claude.use；進度僅存在這支瀏覽器'} })();
 </script>
 </body>
 </html>
+
+
