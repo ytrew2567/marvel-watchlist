@@ -71,13 +71,23 @@ body.mu .it:not(.must){display:none}
   }
 }
   
+.auth{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:12px 0}
+.auth input{flex:1;min-width:190px;padding:9px 10px;border:1px solid var(--bd);border-radius:7px;background:var(--card);color:var(--fg);font:inherit;font-size:13px}
+.auth button{padding:8px 11px}
+.authMsg{width:100%;margin:0;color:var(--mut);font-size:12px}
 </style>
 </head>
 <body>
 <main>
 <h1>漫威影視追劇清單</h1>
-<p class="sub">依上映／首播順序整理，點一下就勾選。進度只存在這支瀏覽器。</p>
+<p class="sub">依上映／首播順序整理，點一下就勾選。登入帳號後可在不同裝置同步觀看進度。</p>
 <div class="tot"><b id="pct">0%</b><span id="cnt" class="sub"></span> <span id="cnt2" class="sub"></span><div class="bar"><i id="fill"></i></div><div class="sub" id="sy" style="margin:8px 0 0">目前只存在這支瀏覽器</div></div>
+<div class="auth" aria-label="帳號登入">
+<input id="emailInput" type="email" autocomplete="email" placeholder="輸入 Email 登入" aria-label="Email">
+<button id="loginBtn" type="button">寄送登入連結</button>
+<button id="logoutBtn" type="button" hidden>登出</button>
+<p id="authMsg" class="authMsg" aria-live="polite">尚未登入；進度保存在這支瀏覽器</p>
+</div>
 <div class="tabs"><button id="t0">上映順序</button><button id="t1">官方時間線</button></div>
 
 <div class="ctl">
@@ -120,6 +130,7 @@ body.mu .it:not(.must){display:none}
 <div class="tabs" id="stabs" hidden style="margin:0 0 10px"><button id="s0">完整（電影＋影集）</button><button id="s1">只看電影</button></div><div id="list"></div><div id="tl" hidden></div><div id="tlm" hidden></div>
 <p class="note">標籤：MCU＝漫威電影宇宙；福斯＝福斯 X 戰警系列；蜘蛛人＝陶比／安德魯／索尼系列；其他＝非 MCU 的改編作品。資料更新至 2026 年 10 月 23 日，未上映作品上映後自動解鎖。非官方個人整理，片名與版權屬 Marvel Studios／Disney 所有。標示「非必需」的區塊（早期影集、短片、動畫）不計入總進度。紅框「必看」＝看《末日之戰》前建議看完的作品。「官方時間線」依 Marvel 官方 Disney+ 故事內順序排列，勾選與「上映順序」共用。</p>
 </main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const TG={M:'MCU',F:'福斯',S:'蜘蛛人',O:'其他',A:'動畫',E:'早期真人',P:'短片',N:'Netflix',B:'ABC等',D:'Disney+'};
 const D=[
@@ -249,24 +260,35 @@ $('brs').onclick=function(){
   t=setTimeout(()=>{this.textContent='重置勾選';delete this.dataset.c},3000);
 };
 refresh();
-(async()=>{try{
- const db=await claude.use('db'),us=await claude.use('user');
- if(!db||!us)return;
- const uid=await us.id();if(!uid)return;
- const ref=db.doc('data/users/'+uid+'/progress');
- const sn=await ref.get();
- if(sn.exists){
-  st=(sn.data().done)||{};
-  try{localStorage.setItem(K,JSON.stringify(st))}catch(e){}
-  secs.forEach(s=>s.items.forEach(x=>{if(!x.lk)x.c.checked=!!st[x.id]}));
-  refresh();
- }else if(Object.keys(st).length){await ref.set({done:st})}
- let pt;
- push=()=>{clearTimeout(pt);pt=setTimeout(()=>{ref.set({done:st}).catch(()=>{$('sy').textContent='同步失敗，請稍後再試'})},600)};
- $('sy').textContent='已同步到你的 Claude 帳號（手機、電腦共用進度）';
-}catch(e){$('sy').textContent='GitHub Pages 無法使用 claude.use；進度僅存在這支瀏覽器'} })();
+// 請在 GitHub 編輯器中將兩個值換成 Supabase Project URL 和 Publishable key。
+const SUPABASE_URL='https://tqyxxxnbqkdfmqjckzlk.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY='sb_publishable___WHZT8UuetNNk3nNwaAaA_hgr6MmG_';
+const OWNER_KEY=K+'-cloud-owner';
+let cloudClient=null,cloudUser=null,cloudLoaded=false,loadingUserId=null,cloudTimer=null;
+const configured=SUPABASE_URL.startsWith('https://')&&!SUPABASE_URL.includes('請填入')&&SUPABASE_PUBLISHABLE_KEY.length>20&&!SUPABASE_PUBLISHABLE_KEY.includes('請填入');
+function setAuthMessage(msg){$('authMsg').textContent=msg;$('sy').textContent=msg}
+function renderAuth(){const signedIn=!!cloudUser;$('emailInput').hidden=signedIn;$('loginBtn').hidden=signedIn;$('logoutBtn').hidden=!signedIn;if(signedIn)setAuthMessage('已登入 '+cloudUser.email+'；進度會同步到你的帳號')}
+async function saveCloud(){if(!cloudClient||!cloudUser||!cloudLoaded)return;const {error}=await cloudClient.from('watch_progress').upsert({user_id:cloudUser.id,done:st,updated_at:new Date().toISOString()},{onConflict:'user_id'});if(error)throw error}
+function scheduleCloudSave(){clearTimeout(cloudTimer);cloudTimer=setTimeout(async()=>{try{await saveCloud();setAuthMessage('已同步到你的帳號')}catch(e){setAuthMessage('雲端同步失敗；本機進度仍已保留，請稍後再試')}},500)}
+async function loadCloudProgress(user){
+ if(loadingUserId===user.id||(cloudLoaded&&cloudUser?.id===user.id))return;
+ loadingUserId=user.id;cloudLoaded=false;cloudUser=user;renderAuth();setAuthMessage('正在載入雲端進度…');
+ try{
+  const {data,error}=await cloudClient.from('watch_progress').select('done').eq('user_id',user.id).maybeSingle();if(error)throw error;
+  const owner=localStorage.getItem(OWNER_KEY)||'';let next={};
+  if(data){next=data.done||{};if(!owner){next={...next,...st};const {error:writeError}=await cloudClient.from('watch_progress').upsert({user_id:user.id,done:next,updated_at:new Date().toISOString()},{onConflict:'user_id'});if(writeError)throw writeError}}
+  else{next=(!owner||owner===user.id)?{...st}:{};const {error:writeError}=await cloudClient.from('watch_progress').upsert({user_id:user.id,done:next,updated_at:new Date().toISOString()},{onConflict:'user_id'});if(writeError)throw writeError}
+  st=next;try{localStorage.setItem(K,JSON.stringify(st));localStorage.setItem(OWNER_KEY,user.id)}catch(e){}
+  cloudLoaded=true;push=scheduleCloudSave;refresh();setAuthMessage('已登入 '+user.email+'；進度已同步');
+ }catch(e){cloudUser=null;cloudLoaded=false;push=null;renderAuth();setAuthMessage('無法載入雲端進度。請確認資料表 watch_progress 與登入設定')}
+ finally{loadingUserId=null}
+}
+$('loginBtn').onclick=async()=>{const email=$('emailInput').value.trim();if(!email){setAuthMessage('請先輸入 Email');return}if(!configured||!cloudClient){setAuthMessage('請先在程式碼填入 Supabase Project URL 和 Publishable key');return}$('loginBtn').disabled=true;setAuthMessage('正在寄送登入連結…');try{const {error}=await cloudClient.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});if(error)throw error;setAuthMessage('登入連結已寄出，請查看 Email 並點擊連結登入')}catch(e){setAuthMessage('寄送失敗：請確認 Email、登入設定和 Redirect URL')}finally{$('loginBtn').disabled=false}};
+$('logoutBtn').onclick=async()=>{if(!cloudClient)return;const {error}=await cloudClient.auth.signOut();if(error){setAuthMessage('登出失敗，請稍後再試');return}cloudUser=null;cloudLoaded=false;push=null;renderAuth();setAuthMessage('已登出；此裝置保留目前進度')};
+if(configured&&window.supabase?.createClient){cloudClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);cloudClient.auth.onAuthStateChange((event,session)=>{if(session?.user)setTimeout(()=>loadCloudProgress(session.user),0);else if(event==='SIGNED_OUT'){cloudUser=null;cloudLoaded=false;push=null;renderAuth();setAuthMessage('已登出；此裝置保留目前進度')}});cloudClient.auth.getSession().then(({data,error})=>{if(error)throw error;if(data.session?.user)loadCloudProgress(data.session.user)}).catch(()=>setAuthMessage('無法連線 Supabase，請稍後重新整理'))}
+else if(!configured)setAuthMessage('請在程式碼填入 Supabase Project URL 和 Publishable key');
+else setAuthMessage('Supabase 程式庫載入失敗，請確認網路連線');
+renderAuth();
 </script>
 </body>
 </html>
-
-
