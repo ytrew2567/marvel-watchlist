@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>漫威影視追劇清單</title>
+<style>
+:root{--bg:#eceef3;--fg:#13172b;--mut:#646a80;--card:#fff;--bd:#cfd3df;--ac:#d62839;--ok:#1f8a5b;--chip:#e3e6ef;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1120;--fg:#eceef6;--mut:#8f95ad;--card:#171b30;--bd:#2c3250;--ac:#ff5566;--ok:#4fcf93;--chip:#232845;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e1120;--fg:#eceef6;--mut:#8f95ad;--card:#171b30;--bd:#2c3250;--ac:#ff5566;--ok:#4fcf93;--chip:#232845;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*:before,*:after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 "Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif}
+main{max-width:640px;margin:0 auto;padding:20px 14px 48px}
+h1{font-size:26px;line-height:1.2;margin:0 0 6px;font-weight:800;letter-spacing:.02em}
+.sub{color:var(--mut);font-size:13px;margin:0 0 16px}
+.tot{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:14px}
+.tot b{font-size:30px;font-weight:800;margin-right:6px}
+.bar{height:8px;background:var(--chip);border-radius:4px;overflow:hidden;margin-top:10px}
+.bar i{display:block;height:100%;width:0;background:var(--ac);transition:width .3s}
+.ctl{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+button{font:inherit;font-size:13px;color:var(--fg);background:var(--card);border:1px solid var(--bd);border-radius:6px;padding:6px 11px;cursor:pointer}
+button:focus-visible,summary:focus-visible,input:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+button.on{background:var(--fg);color:var(--bg)}
+details{background:var(--card);border:1px solid var(--bd);border-radius:10px;margin-bottom:10px;overflow:hidden}
+summary{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;font-weight:700;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary .n{margin-left:auto;font-weight:500;font-size:13px;color:var(--mut)}
+summary .all{font-size:12px;padding:3px 8px}
+details[open] summary{border-bottom:1px dashed var(--bd)}
+.it{display:flex;align-items:center;gap:10px;padding:9px 14px;border-top:1px dashed var(--bd);cursor:pointer}
+.it:first-of-type{border-top:0}
+.it input{width:18px;height:18px;accent-color:var(--ok);flex:none;margin:0}
+.y{width:36px;flex:none;color:var(--mut);font-size:13px;font-variant-numeric:tabular-nums}
+.t{flex:1;min-width:0}
+.it em{font-style:normal;font-size:11px;color:var(--mut);background:var(--chip);border-radius:4px;padding:1px 6px;flex:none}
+.it.done .t{color:var(--mut);text-decoration:line-through}
+.it.lock{opacity:.55;cursor:default}
+body.un .it.done{display:none}
+body.mu .it:not(.must){display:none}
+.it.must{border-left:3px solid var(--ac);padding-left:11px}
+.mk{font-size:11px;font-weight:700;color:var(--ac);border:1px solid var(--ac);border-radius:4px;padding:0 5px;flex:none}
+.tabs{display:flex;gap:8px;margin:14px 0 0}.tabs button{flex:1;padding:9px}
+.note{color:var(--mut);font-size:12px;margin-top:20px}
+.opt{font-weight:500;font-size:11px;color:var(--mut);background:var(--chip);border-radius:4px;padding:1px 6px;margin-left:6px}
+</style>
+</head>
+<body>
+<main>
+<h1>漫威影視追劇清單</h1>
+<p class="sub">依上映／首播順序整理，點一下就勾選。進度只存在這支瀏覽器。</p>
+<div class="tot"><b id="pct">0%</b><span id="cnt" class="sub"></span> <span id="cnt2" class="sub"></span><div class="bar"><i id="fill"></i></div><div class="sub" id="sy" style="margin:8px 0 0">目前只存在這支瀏覽器</div></div>
+<div class="tabs"><button id="t0">上映順序</button><button id="t1">官方時間線</button></div>
+<div class="ctl">
+<button id="bmu">只看必看</button>
+<button id="bun">只看未看</button>
+<button id="bop">全部展開</button>
+<button id="bcl">全部收合</button>
+<button id="brs">重置勾選</button>
+</div>
+<div class="tabs" id="stabs" hidden style="margin:0 0 10px"><button id="s0">完整（電影＋影集）</button><button id="s1">只看電影</button></div><div id="list"></div><div id="tl" hidden></div><div id="tlm" hidden></div>
+<p class="note">標籤：MCU＝漫威電影宇宙；福斯＝福斯 X 戰警系列；蜘蛛人＝陶比／安德魯／索尼系列；其他＝非 MCU 的改編作品。資料更新至 2026 年 10 月 23 日，未上映作品上映後自動解鎖。非官方個人整理，片名與版權屬 Marvel Studios／Disney 所有。標示「非必需」的區塊（早期影集、短片、動畫）不計入總進度。紅框「必看」＝看《末日之戰》前建議看完的作品。「官方時間線」依 Marvel 官方 Disney+ 故事內順序排列，勾選與「上映順序」共用。</p>
+</main>
+<script>
+const TG={M:'MCU',F:'福斯',S:'蜘蛛人',O:'其他',A:'動畫',E:'早期真人',P:'短片',N:'Netflix',B:'ABC等',D:'Disney+'};
+const D=[
+['電影 1986–2010',['1986|天將神兵|O','1998|刀鋒戰士|O','2000|X戰警|F','2002|刀鋒戰士2|O','2002|蜘蛛人|S','2003|夜魔俠|O','2003|X戰警2|F','2003|綠巨人浩克|O','2004|制裁者|O','2004|蜘蛛人2|S','2004|刀鋒戰士3|O','2005|幻影殺手|O','2005|驚奇4超人|F','2006|X戰警：最後戰役|F','2007|靈魂戰車|O','2007|蜘蛛人3|S','2007|驚奇4超人：銀色衝浪手現身|F','2008|鋼鐵人|M','2008|無敵浩克|M','2008|制裁者：戰區|O','2009|X戰警：金鋼狼|F','2010|鋼鐵人2|M']],
+['電影 2011–2019',['2011|雷神索爾|M','2011|X戰警：第一戰|F','2011|美國隊長|M','2012|靈魂戰車2：復仇時刻|O','2012|復仇者聯盟|M','2012|蜘蛛人驚奇再起|S','2013|鋼鐵人3|M','2013|金鋼狼：武士之戰|F','2013|雷神索爾2：黑暗世界|M','2014|美國隊長2：酷寒戰士|M','2014|蜘蛛人驚奇再起2：電光之戰|S','2014|X戰警：未來昔日|F','2014|星際異攻隊|M','2014|大英雄天團|A','2015|復仇者聯盟2：奧創紀元|M','2015|蟻人|M','2015|驚奇4超人（重啟版）|O','2016|惡棍英雄：死侍|F','2016|美國隊長3：英雄內戰|M','2016|X戰警：天啟|F','2016|奇異博士|M','2017|羅根|F','2017|星際異攻隊2|M','2017|蜘蛛人：返校日|M','2017|雷神索爾3：諸神黃昏|M','2018|黑豹|M','2018|復仇者聯盟3：無限之戰|M','2018|死侍2|F','2018|蟻人與黃蜂女|M','2018|猛毒|S','2018|蜘蛛人：新宇宙|A','2019|驚奇隊長|M','2019|復仇者聯盟4：終局之戰|M','2019|X戰警：黑鳳凰|F','2019|蜘蛛人：離家日|M']],
+['電影 2020–2026',['2020|新變種人|F','2021|黑寡婦|M','2021|尚氣與十環傳奇|M','2021|猛毒2：血蜘蛛|S','2021|永恆族|M','2021|蜘蛛人：無家日|M','2022|魔比斯|S','2022|奇異博士2：失控多重宇宙|M','2022|雷神索爾4：愛與雷霆|M','2022|黑豹2：瓦干達萬歲|M','2023|蟻人與黃蜂女：量子狂熱|M','2023|星際異攻隊3|M','2023|蜘蛛人：穿越新宇宙|A','2023|驚奇隊長2|M','2024|蜘蛛夫人|S','2024|死侍與金鋼狼|M','2024|猛毒：最後一舞|S','2024|獵人克雷文|S','2025|美國隊長：無畏新世界|M','2025|雷霆特攻隊*|M','2025|驚奇4超人：第一步|M','2026|蜘蛛人：重生日|S']],
+['尚未上映（已公布）',['2026|復仇者聯盟：末日之戰（12月18日）|M|2026-12-18','2027|蜘蛛人：你的友好鄰居 第2季（1月13日）|D|2027-01-13','2027|夜魔俠：重生 第3季（2027年3月）|D|2027-03-01','2027|蜘蛛人：超越新宇宙（6月18日，暫定）|A|2027-06-18','2027|漫威殭屍特別篇（暫譯，萬聖節）|D|2027-10-31','2027|復仇者聯盟：秘密戰爭（12月17日）|M|2027-12-17','2027|X戰警 ’97 第3季（日期待公布）|D|2027-12-31','2028|X戰警（暫譯，5月5日）|M|2028-05-05','2028|惡靈戰警（7月28日）|M|2028-07-28','2028|黑豹3（12月15日）|M|2028-12-15','2028|Zodiac 間諜影集（暫譯，預計2028）|D|2028-12-31']],
+['Disney+ 影集 2021–2023',['2021|汪達幻視|D','2021|獵鷹與酷寒戰士|D','2021|洛基 第1季|D','2021|無限可能：假如…？第1季|D','2021|鷹眼|D','2022|月光騎士|D','2022|驚奇少女|D','2022|我是格魯特 第1季|D','2022|律師女浩克|D','2022|暗夜狼人（特別篇）|D','2022|星際異攻隊：聖誕特別篇|D','2023|秘密入侵|D','2023|我是格魯特 第2季|D','2023|洛基 第2季|D','2023|無限可能：假如…？第2季|D']],
+['Disney+ 影集 2024–2026',['2024|回聲女|D','2024|X戰警 ’97|D','2024|阿嘉莎：混沌女巫|D','2024|無限可能：假如…？第3季|D','2025|蜘蛛人：你的友好鄰居|D','2025|夜魔俠：重生 第1季|D','2025|鋼鐵心|D','2025|瓦干達之眼|D','2025|漫威殭屍|D','2026|神力人|D','2026|夜魔俠：重生 第2季|D','2026|制裁者：最後一擊（特別篇）|D','2026|X戰警 ’97 第2季|D','2026|幻視任務（播映中）|D']],
+['Netflix 街頭英雄（推出順序）',['2015|夜魔俠 第1季|N','2015|潔西卡・瓊斯 第1季|N','2016|夜魔俠 第2季|N','2016|盧克・凱吉 第1季|N','2017|鐵拳俠 第1季|N','2017|捍衛者聯盟|N','2017|制裁者 第1季|N','2018|潔西卡・瓊斯 第2季|N','2018|盧克・凱吉 第2季|N','2018|鐵拳俠 第2季|N','2018|夜魔俠 第3季|N','2019|制裁者 第2季|N','2019|潔西卡・瓊斯 第3季|N']],
+['其他真人影集 2013–2020',['2013|神盾局特工|B','2015|卡特探員|B','2017|變種軍團|B','2017|異人族|B','2017|天賦異稟|B','2017|離家童盟|B','2018|斗篷與匕首|B','2020|地獄風暴|B']],
+['早期真人影集 1974–2006',['1974|蜘蛛人小故事（Spidey Super Stories）|E','1977|蜘蛛人（The Amazing Spider-Man）|E','1977|無敵浩克（The Incredible Hulk）|E','1978|日本版蜘蛛人（東映特攝）|E','2001|變種 X（Mutant X）|E','2006|刀鋒戰士（Blade: The Series）|E'],1],
+['短片',['2011|顧問|P','2011|前往雷神之鎚途中發生的趣事|P','2012|Item 47|P','2013|卡特探員（短片）|P','2014|王者萬歲|P','2016|雷神小隊|P','2017|雷神小隊：第2部|P','2017|死侍短片 No Good Deed|P','2018|達瑞爾小隊|P'],1],
+['動畫長片與直接發行影片',['1980|Dracula: Sovereign of the Damned（德古拉動畫電影）|A','1981|科學怪人動畫電影（Frankenstein）|A','2006|終極復仇者（Ultimate Avengers）|A','2006|終極復仇者2|A','2007|無敵鋼鐵人|A','2007|奇異博士：至尊法師|A','2008|新復仇者：明日英雄|A','2009|浩克對決（Hulk Versus）|A','2010|星球浩克（Planet Hulk）|A','2011|雷神索爾：阿斯嘉傳說|A','2013|鋼鐵人：科技狂潮|A','2013|鋼鐵人與浩克：英雄聯手|A','2014|復仇者機密：黑寡婦與制裁者|A','2014|鋼鐵人與美國隊長：英雄聯手|A','2016|浩克：怪物出沒之地|A','2018|漫威崛起：秘密勇士|A'],1],
+['動畫影集 1966–2025',['1966|漫威超級英雄（The Marvel Super Heroes）|A','1967|驚奇4超人動畫版|A','1967|蜘蛛人（1967 動畫版）|A','1978|新驚奇4超人|A','1979|蜘蛛女|A','1979|Fred and Barney Meet the Thing|A','1981|蜘蛛人（1981 動畫版）|A','1981|蜘蛛人與神奇朋友|A','1982|浩克動畫版|A','1992|X戰警動畫影集|A','1993|鋼鐵人動畫影集|A','1994|驚奇4超人動畫影集|A','1994|蜘蛛人動畫影集|A','1996|無敵浩克動畫影集|A','1998|銀色衝浪手|A','1999|復仇者聯盟動畫版|A','1999|蜘蛛人：無限|A','2000|X戰警：進化|A','2003|蜘蛛人新動畫影集|A','2006|驚奇4超人：世上最偉大英雄|A','2008|華麗蜘蛛人|A','2009|鋼鐵人：裝甲冒險|A','2009|金鋼狼與X戰警|A','2009|超級英雄小隊|A','2010|復仇者：世上最強英雄|A','2010|漫威日系動畫：鋼鐵人|A','2011|漫威日系動畫：金鋼狼|A','2011|漫威日系動畫：X戰警|A','2011|漫威日系動畫：刀鋒戰士|A','2012|終極蜘蛛人|A','2013|復仇者集結|A','2013|浩克與特工隊|A','2014|漫威磁碟戰記：復仇者聯盟|A','2015|星際異攻隊動畫影集|A','2017|漫威未來復仇者|A','2017|漫威蜘蛛人動畫影集|A','2017|大英雄天團動畫影集|A','2018|漫威崛起系列|A','2021|M.O.D.O.K.|A','2021|殺手猴|A','2021|蜘蛛人與他的神奇朋友|A','2023|月亮女孩與惡魔恐龍|A','2025|鋼鐵人與他的好朋友|A'],1]
+];
+const K='mcu-checklist-v1';
+let st={};
+try{st=JSON.parse(localStorage.getItem(K)||'{}')||{}}catch(e){st={}}
+let push=null;
+function save(){try{localStorage.setItem(K,JSON.stringify(st))}catch(e){}if(push)push()}
+const now=new Date(),root=document.getElementById('list'),secs=[];
+const byId={},MAP={},MUST=new Set(['復仇者聯盟4：終局之戰','洛基 第1季','洛基 第2季','奇異博士2：失控多重宇宙','蟻人與黃蜂女：量子狂熱','蜘蛛人：無家日','死侍與金鋼狼','雷霆特攻隊*','驚奇4超人：第一步','蜘蛛人：重生日','美國隊長','復仇者聯盟','復仇者聯盟3：無限之戰','尚氣與十環傳奇','黑豹2：瓦干達萬歲','美國隊長：無畏新世界','瓦干達之眼','汪達幻視','獵鷹與酷寒戰士','X戰警','X戰警2','X戰警：第一戰']);
+function mk(p,id){
+  const lk=p[3]&&now<new Date(p[3]),m=MUST.has(p[1]);
+  const l=document.createElement('label');l.className='it'+(lk?' lock':'')+(m?' must':'');
+  l.innerHTML='<input type="checkbox"'+(lk?' disabled':'')+'><span class="y">'+p[0]+'</span><span class="t">'+p[1]+'</span>'+(m?'<b class="mk">必看</b>':'')+'<em>'+(lk?'未上映':TG[p[2]])+'</em>';
+  const c=l.querySelector('input');
+  if(!lk){c.checked=!!st[id];c.addEventListener('change',()=>{c.checked?st[id]=1:delete st[id];save();refresh()})}
+  (byId[id]=byId[id]||[]).push({l,c});
+  return {id,l,c,lk,p};
+}
+D.forEach((s,i)=>{
+  const d=document.createElement('details');d.open=i===0||i===3;
+  const sm=document.createElement('summary');
+  sm.innerHTML='<span>'+s[0]+(s[2]?'<span class="opt">非必需</span>':'')+'</span><span class="n"></span><button class="all">全選</button>';
+  d.appendChild(sm);
+  const items=[];
+  s[1].forEach((r,j)=>{
+    const p=r.split('|'),id=i+'-'+j,o=mk(p,id);MAP[p[1]]=o;
+    d.appendChild(o.l);items.push(o);
+  });
+  sm.querySelector('.all').addEventListener('click',e=>{
+    e.preventDefault();e.stopPropagation();
+    const mu=document.body.classList.contains('mu'),av=items.filter(x=>!x.lk&&(!mu||x.l.classList.contains('must'))),every=av.every(x=>st[x.id]);
+    av.forEach(x=>{every?delete st[x.id]:st[x.id]=1;x.c.checked=!every});
+    save();refresh();
+  });
+  root.appendChild(d);secs.push({sm,items,o:!!s[2]});
+});
+const TLD=[['起點與第一階段','瓦干達之眼/美國隊長/卡特探員（短片）/驚奇隊長/鋼鐵人/鋼鐵人2/無敵浩克/前往雷神之鎚途中發生的趣事/雷神索爾/顧問/復仇者聯盟'],['第二階段前期','Item 47/雷神索爾2：黑暗世界/鋼鐵人3/王者萬歲/美國隊長2：酷寒戰士/星際異攻隊/星際異攻隊2/我是格魯特 第1季/我是格魯特 第2季'],['街頭英雄登場','夜魔俠 第1季/潔西卡・瓊斯 第1季/復仇者聯盟2：奧創紀元/蟻人/夜魔俠 第2季/盧克・凱吉 第1季/鐵拳俠 第1季/捍衛者聯盟'],['英雄內戰到終局之戰','美國隊長3：英雄內戰/黑寡婦/黑豹/蜘蛛人：返校日/制裁者 第1季/奇異博士/潔西卡・瓊斯 第2季/盧克・凱吉 第2季/鐵拳俠 第2季/夜魔俠 第3季/雷神索爾3：諸神黃昏/制裁者 第2季/潔西卡・瓊斯 第3季/蟻人與黃蜂女/復仇者聯盟3：無限之戰/復仇者聯盟4：終局之戰'],['多重宇宙時代','洛基 第1季/無限可能：假如…？第1季/漫威殭屍/汪達幻視/尚氣與十環傳奇/獵鷹與酷寒戰士/蜘蛛人：離家日/永恆族/蜘蛛人：無家日/奇異博士2：失控多重宇宙/鷹眼/月光騎士/黑豹2：瓦干達萬歲/回聲女/律師女浩克/驚奇少女/雷神索爾4：愛與雷霆/鋼鐵心/暗夜狼人（特別篇）/星際異攻隊：聖誕特別篇'],['最新作品','蟻人與黃蜂女：量子狂熱/星際異攻隊3/秘密入侵/驚奇隊長2/洛基 第2季/無限可能：假如…？第2季/死侍與金鋼狼/阿嘉莎：混沌女巫/無限可能：假如…？第3季/夜魔俠：重生 第1季/美國隊長：無畏新世界/雷霆特攻隊*/驚奇4超人：第一步/神力人/夜魔俠：重生 第2季/制裁者：最後一擊（特別篇）/幻視任務（播映中）'],['尚未上映（官方時間線尚未收錄）','復仇者聯盟：末日之戰（12月18日）/蜘蛛人：你的友好鄰居 第2季（1月13日）/夜魔俠：重生 第3季（2027年3月）/漫威殭屍特別篇（暫譯，萬聖節）/復仇者聯盟：秘密戰爭（12月17日）/X戰警（暫譯，5月5日）/惡靈戰警（7月28日）/黑豹3（12月15日）/Zodiac 間諜影集（暫譯，預計2028）']];
+const tls=[],tl=document.getElementById('tl');
+let tn=0;
+tl.innerHTML='<p class="sub">完整時間線（電影＋影集），對應 Disney+「MCU Complete Timeline」，依故事內順序排列，勾選與「上映順序」共用。</p>';
+TLD.forEach((g,k)=>{
+  const d=document.createElement('details');d.open=k===0;
+  const sm=document.createElement('summary');
+  sm.innerHTML='<span>'+g[0]+'</span><span class="n"></span>';
+  d.appendChild(sm);const items=[];
+  g[1].split('/').forEach(t=>{
+    const m=MAP[t];if(!m)return;
+    const o=mk([++tn,t,m.p[2],m.p[3]],m.id);d.appendChild(o.l);items.push(o);
+  });
+  tl.appendChild(d);tls.push({n:sm.querySelector('.n'),items});
+});
+const tlm=document.getElementById('tlm');
+tlm.innerHTML='<p class="sub">只含電影（不含影集與短片），對應 Disney+「MCU Movie Timeline」，依故事內順序排列，勾選與完整時間線共用。</p>';
+let tm=0;
+TLD.forEach((g,k)=>{
+  const ts=g[1].split('/').filter(t=>MAP[t]&&MAP[t].p[2]==='M');
+  if(!ts.length)return;
+  const d=document.createElement('details');d.open=k===0;
+  const sm=document.createElement('summary');
+  sm.innerHTML='<span>'+g[0]+'</span><span class="n"></span>';
+  d.appendChild(sm);const items=[];
+  ts.forEach(t=>{const m=MAP[t],o=mk([++tm,t,'M',m.p[3]],m.id);d.appendChild(o.l);items.push(o)});
+  tlm.appendChild(d);tls.push({n:sm.querySelector('.n'),items});
+});
+function refresh(){
+  let a=0,b=0;
+  for(const id in byId)byId[id].forEach(o=>{o.c.checked=!!st[id];o.l.classList.toggle('done',!!st[id])});
+  const mu0=document.body.classList.contains('mu');
+  tls.forEach(g=>{const it=g.items.filter(x=>!x.lk&&(!mu0||x.l.classList.contains('must')));g.n.textContent=(!it.length&&g.items.length&&!mu0)?g.items.length+' 部未上映':it.filter(x=>st[x.id]).length+' / '+it.length;g.n.parentNode.parentNode.hidden=mu0&&!it.length});
+  const mi=[...MUST].map(t=>MAP[t]&&MAP[t].id).filter(Boolean);
+  document.getElementById('cnt2').textContent='必看 '+mi.filter(i=>st[i]).length+' / '+mi.length;
+  secs.forEach(s=>{
+    const mu=document.body.classList.contains('mu'),av=s.items.filter(x=>!x.lk&&(!mu||x.l.classList.contains('must'))),dn=av.filter(x=>st[x.id]).length;
+    s.sm.parentNode.hidden=mu&&!av.length;
+    s.sm.querySelector('.n').textContent=(!av.length&&s.items.length&&!mu)?s.items.length+' 部未上映':dn+' / '+av.length;
+    s.sm.querySelector('.all').textContent=(av.length&&dn===av.length)?'取消':'全選';
+    s.items.forEach(x=>x.l.classList.toggle('done',!x.lk&&!!st[x.id]));
+    if(!s.o){a+=dn;b+=av.length}
+  });
+  const p=b?Math.round(a/b*100):0;
+  document.getElementById('pct').textContent=p+'%';
+  document.getElementById('cnt').textContent='已看 '+a+' / '+b+' 部';
+  document.getElementById('fill').style.width=p+'%';
+}
+const $=id=>document.getElementById(id);
+let cur=0,sub=0;
+function show(){document.getElementById('list').hidden=cur!==0;document.getElementById('tl').hidden=!(cur===1&&sub===0);document.getElementById('tlm').hidden=!(cur===1&&sub===1);document.getElementById('stabs').hidden=cur!==1;$('t0').classList.toggle('on',cur===0);$('t1').classList.toggle('on',cur===1);$('s0').classList.toggle('on',sub===0);$('s1').classList.toggle('on',sub===1)}
+function tab(k){cur=k;show()}
+$('s0').onclick=()=>{sub=0;show()};$('s1').onclick=()=>{sub=1;show()};
+$('t0').onclick=()=>tab(0);$('t1').onclick=()=>tab(1);tab(0);
+$('bmu').onclick=function(){document.body.classList.toggle('mu');this.classList.toggle('on');refresh()};
+$('bun').onclick=function(){document.body.classList.toggle('un');this.classList.toggle('on')};
+$('bop').onclick=()=>document.querySelectorAll('details').forEach(d=>d.open=true);
+$('bcl').onclick=()=>document.querySelectorAll('details').forEach(d=>d.open=false);
+let t;
+$('brs').onclick=function(){
+  if(this.dataset.c){st={};save();secs.forEach(s=>s.items.forEach(x=>{x.c.checked=false}));refresh();this.textContent='重置勾選';delete this.dataset.c;clearTimeout(t);return}
+  this.dataset.c=1;this.textContent='再按一次確認重置';
+  t=setTimeout(()=>{this.textContent='重置勾選';delete this.dataset.c},3000);
+};
+refresh();
+(async()=>{try{
+ const db=await claude.use('db'),us=await claude.use('user');
+ if(!db||!us)return;
+ const uid=await us.id();if(!uid)return;
+ const ref=db.doc('data/users/'+uid+'/progress');
+ const sn=await ref.get();
+ if(sn.exists){
+  st=(sn.data().done)||{};
+  try{localStorage.setItem(K,JSON.stringify(st))}catch(e){}
+  secs.forEach(s=>s.items.forEach(x=>{if(!x.lk)x.c.checked=!!st[x.id]}));
+  refresh();
+ }else if(Object.keys(st).length){await ref.set({done:st})}
+ let pt;
+ push=()=>{clearTimeout(pt);pt=setTimeout(()=>{ref.set({done:st}).catch(()=>{$('sy').textContent='同步失敗，請稍後再試'})},600)};
+ $('sy').textContent='已同步到你的 Claude 帳號（手機、電腦共用進度）';
+}catch(e){}})();
+</script>
+</body>
+</html>
