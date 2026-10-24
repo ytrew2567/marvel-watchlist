@@ -170,7 +170,7 @@ function mk(p,id){
   l.innerHTML='<input type="checkbox"'+(lk?' disabled':'')+'><img class="poster" data-poster-id="'+id+'" loading="lazy" decoding="async" alt=""><span class="y">'+p[0]+'</span><span class="t">'+p[1]+'</span>'+(m?'<b class="mk">必看</b>':'')+'<em>'+(lk?'未上映':TG[p[2]])+'</em>';
   const c=l.querySelector('input');
   if(!lk){c.checked=!!st[id];c.addEventListener('change',()=>{c.checked?st[id]=1:delete st[id];save();refresh()})}
-  (byId[id]=byId[id]||[]).push({l,c});
+  (byId[id]=byId[id]||[]).push({id,l,c,lk,p});
   return {id,l,c,lk,p};
 }
 D.forEach((s,i)=>{
