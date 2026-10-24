@@ -223,7 +223,7 @@ function startPosterLoader(){
  const apiKey=TMDB_API_KEY.trim();
  if(!apiKey||apiKey.includes('請填入'))return;
  let cache={};
- try{cache=JSON.parse(localStorage.getItem('mcu-tmdb-posters-v1')||'{}')||{}}catch(e){}
+ try{cache=JSON.parse(localStorage.getItem('mcu-tmdb-posters-v2')||'{}')||{}}catch(e){}
  const itemsById=Object.fromEntries(Object.values(MAP).map(x=>[x.id,x]));
  const pending=new Set(),queue=[];
  const setPoster=(id,url)=>{
@@ -236,9 +236,12 @@ function startPosterLoader(){
    const item=queue.shift();
    try{
     const url=new URL('https://api.themoviedb.org/3/search/multi');
-    url.searchParams.set('api_key',apiKey);url.searchParams.set('query',item.p[1]);
+    const headers={};
+    if(apiKey.includes('.'))headers.Authorization='Bearer '+apiKey;
+    else url.searchParams.set('api_key',apiKey);
+    url.searchParams.set('query',item.p[1]);
     url.searchParams.set('language','zh-TW');url.searchParams.set('include_adult','false');
-    const response=await fetch(url);if(!response.ok)throw new Error('TMDB '+response.status);
+    const response=await fetch(url,{headers});if(!response.ok)throw new Error('TMDB '+response.status);
     const data=await response.json(),target=normTitle(item.p[1]),year=String(item.p[0]);
     const movieTypes=['M','F','S','O','P'],tvTypes=['D','N','B','E'];
     let best=null,bestScore=-999;
@@ -254,7 +257,7 @@ function startPosterLoader(){
     }
     const poster=best&&bestScore>=5?'https://image.tmdb.org/t/p/w185'+best.poster_path:'';
     cache[item.id]=poster;setPoster(item.id,poster);
-    try{localStorage.setItem('mcu-tmdb-posters-v1',JSON.stringify(cache))}catch(e){}
+    try{localStorage.setItem('mcu-tmdb-posters-v2',JSON.stringify(cache))}catch(e){}
    }catch(e){/* Retry failed lookups the next time the page is opened. */}
    await new Promise(resolve=>setTimeout(resolve,350));
   }
@@ -265,12 +268,12 @@ function startPosterLoader(){
    if(!entry.isIntersecting)continue;
    const img=entry.target;observer.unobserve(img);
    const id=img.dataset.posterId,item=itemsById[id];
-   if(item&&!pending.has(id)&&typeof cache[id]!=='string'){pending.add(id);queue.push(item)}
+   if(item&&!pending.has(id)&&!cache[id]){pending.add(id);queue.push(item)}
   }
   run();
  },{rootMargin:'180px'});
  Object.values(itemsById).forEach(item=>{
-  if(typeof cache[item.id]==='string'){if(cache[item.id])setPoster(item.id,cache[item.id]);return}
+  if(cache[item.id]){setPoster(item.id,cache[item.id]);return}
   (byId[item.id]||[]).forEach(o=>{const img=o.l.querySelector('.poster');if(img)observer.observe(img)});
  });
 }
@@ -327,7 +330,7 @@ $('brs').onclick=function(){
 };
 refresh();
 // 請在 GitHub 編輯器填入你自己的 Supabase 設定與 TMDB API Key (v3)。
-const TMDB_API_KEY='232b10b197fbdadb92ae732e673bc371';
+const TMDB_API_KEY='5b5865355c496cfa1fa6719bc5397f46';
 const SUPABASE_URL='https://tqyxxxnbqkdfmqjckzlk.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable___WHZT8UuetNNk3nNwaAaA_hgr6MmG_';
 const OWNER_KEY=K+'-cloud-owner';
