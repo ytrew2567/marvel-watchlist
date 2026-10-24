@@ -36,6 +36,10 @@ details[open] summary{border-bottom:1px dashed var(--bd)}
 .it em{font-style:normal;font-size:11px;color:var(--mut);background:var(--chip);border-radius:4px;padding:1px 6px;flex:none}
 .it.done .t{color:var(--mut);text-decoration:line-through}
 .it[hidden]{display:none!important}
+.poster{width:36px;height:54px;object-fit:cover;border-radius:4px;background:var(--chip);flex:none}
+.tmdb-credit{display:flex;gap:12px;align-items:center;margin-top:14px;padding:10px;border:1px solid var(--bd);border-radius:8px;color:var(--mut);font-size:11px}
+.tmdb-credit img{display:block;width:64px;height:auto}
+.tmdb-credit p{margin:0}
 .it.lock{opacity:.55;cursor:default}
 body.un .it.done{display:none}
 body.mu .it:not(.must){display:none}
@@ -129,6 +133,12 @@ body.mu .it:not(.must){display:none}
 
 <div class="tabs" id="stabs" hidden style="margin:0 0 10px"><button id="s0">完整（電影＋影集）</button><button id="s1">只看電影</button></div><div id="list"></div><div id="tl" hidden></div><div id="tlm" hidden></div>
 <p class="note">標籤：MCU＝漫威電影宇宙；福斯＝福斯 X 戰警系列；蜘蛛人＝陶比／安德魯／索尼系列；其他＝非 MCU 的改編作品。資料更新至 2026 年 10 月 23 日，未上映作品上映後自動解鎖。非官方個人整理，片名與版權屬 Marvel Studios／Disney 所有。標示「非必需」的區塊（早期影集、短片、動畫）不計入總進度。紅框「必看」＝看《末日之戰》前建議看完的作品。「官方時間線」依 Marvel 官方 Disney+ 故事內順序排列，勾選與「上映順序」共用。</p>
+<div class="tmdb-credit" aria-label="Credits">
+  <a href="https://www.themoviedb.org/" target="_blank" rel="noopener" aria-label="TMDB 官方網站">
+    <img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_square_2-d537fb228cf3ded904ef09b136fe3fec72548ebc1fea3fbbd1ad9e36364db38b.svg" alt="TMDB">
+  </a>
+  <p>資料來源與致謝 / Credits<br>本產品使用 TMDB API，但未獲 TMDB 背書或認證。<br>This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
+</div>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -157,7 +167,7 @@ const byId={},MAP={},ITEM={},MUST=new Set(['復仇者聯盟4：終局之戰','�
 function mk(p,id){
   const lk=p[3]&&now<new Date(p[3]),m=MUST.has(p[1]);
   const l=document.createElement('label');l.className='it'+(lk?' lock':'')+(m?' must':'');
-  l.innerHTML='<input type="checkbox"'+(lk?' disabled':'')+'><span class="y">'+p[0]+'</span><span class="t">'+p[1]+'</span>'+(m?'<b class="mk">必看</b>':'')+'<em>'+(lk?'未上映':TG[p[2]])+'</em>';
+  l.innerHTML='<input type="checkbox"'+(lk?' disabled':'')+'><img class="poster" data-poster-id="'+id+'" loading="lazy" decoding="async" alt=""><span class="y">'+p[0]+'</span><span class="t">'+p[1]+'</span>'+(m?'<b class="mk">必看</b>':'')+'<em>'+(lk?'未上映':TG[p[2]])+'</em>';
   const c=l.querySelector('input');
   if(!lk){c.checked=!!st[id];c.addEventListener('change',()=>{c.checked?st[id]=1:delete st[id];save();refresh()})}
   (byId[id]=byId[id]||[]).push({l,c});
@@ -209,6 +219,62 @@ TLD.forEach((g,k)=>{
   ts.forEach(t=>{const m=MAP[t],o=mk([++tm,t,'M',m.p[3]],m.id);d.appendChild(o.l);items.push(o)});
   tlm.appendChild(d);tls.push({n:sm.querySelector('.n'),items});
 });
+function startPosterLoader(){
+ const apiKey=TMDB_API_KEY.trim();
+ if(!apiKey||apiKey.includes('請填入'))return;
+ let cache={};
+ try{cache=JSON.parse(localStorage.getItem('mcu-tmdb-posters-v1')||'{}')||{}}catch(e){}
+ const itemsById=Object.fromEntries(Object.values(MAP).map(x=>[x.id,x]));
+ const pending=new Set(),queue=[];
+ const setPoster=(id,url)=>{
+  (byId[id]||[]).forEach(o=>{const img=o.l.querySelector('.poster');if(img&&url)img.src=url});
+ };
+ let busy=false;
+ const run=async()=>{
+  if(busy)return;busy=true;
+  while(queue.length){
+   const item=queue.shift();
+   try{
+    const url=new URL('https://api.themoviedb.org/3/search/multi');
+    url.searchParams.set('api_key',apiKey);url.searchParams.set('query',item.p[1]);
+    url.searchParams.set('language','zh-TW');url.searchParams.set('include_adult','false');
+    const response=await fetch(url);if(!response.ok)throw new Error('TMDB '+response.status);
+    const data=await response.json(),target=normTitle(item.p[1]),year=String(item.p[0]);
+    const movieTypes=['M','F','S','O','P'],tvTypes=['D','N','B','E'];
+    let best=null,bestScore=-999;
+    for(const result of data.results||[]){
+     if(!result.poster_path||!['movie','tv'].includes(result.media_type))continue;
+     const candidate=normTitle(result.title||result.name||'');
+     let score=candidate===target?12:(candidate.includes(target)||target.includes(candidate)?5:0);
+     const date=(result.release_date||result.first_air_date||'').slice(0,4);
+     if(date===year)score+=6;else if(date)score-=Math.min(8,Math.abs(Number(date)-Number(year)));
+     if(movieTypes.includes(item.p[2])&&result.media_type==='movie')score+=2;
+     if(tvTypes.includes(item.p[2])&&result.media_type==='tv')score+=2;
+     if(score>bestScore){best=result;bestScore=score}
+    }
+    const poster=best&&bestScore>=5?'https://image.tmdb.org/t/p/w185'+best.poster_path:'';
+    cache[item.id]=poster;setPoster(item.id,poster);
+    try{localStorage.setItem('mcu-tmdb-posters-v1',JSON.stringify(cache))}catch(e){}
+   }catch(e){/* Retry failed lookups the next time the page is opened. */}
+   await new Promise(resolve=>setTimeout(resolve,350));
+  }
+  busy=false;
+ };
+ const observer=new IntersectionObserver(entries=>{
+  for(const entry of entries){
+   if(!entry.isIntersecting)continue;
+   const img=entry.target;observer.unobserve(img);
+   const id=img.dataset.posterId,item=itemsById[id];
+   if(item&&!pending.has(id)&&typeof cache[id]!=='string'){pending.add(id);queue.push(item)}
+  }
+  run();
+ },{rootMargin:'180px'});
+ Object.values(itemsById).forEach(item=>{
+  if(typeof cache[item.id]==='string'){if(cache[item.id])setPoster(item.id,cache[item.id]);return}
+  (byId[item.id]||[]).forEach(o=>{const img=o.l.querySelector('.poster');if(img)observer.observe(img)});
+ });
+}
+function normTitle(s){return String(s).toLocaleLowerCase().split(' ').join('').split('　').join('').split('・').join('').split('：').join('').split(':').join('')}
 function refresh(){
   let a=0,b=0;
   const mu=document.body.classList.contains('mu'),un=document.body.classList.contains('un');
@@ -260,7 +326,8 @@ $('brs').onclick=function(){
   t=setTimeout(()=>{this.textContent='重置勾選';delete this.dataset.c},3000);
 };
 refresh();
-// 請在 GitHub 編輯器中將兩個值換成 Supabase Project URL 和 Publishable key。
+// 請在 GitHub 編輯器填入你自己的 Supabase 設定與 TMDB API Key (v3)。
+const TMDB_API_KEY='232b10b197fbdadb92ae732e673bc371';
 const SUPABASE_URL='https://tqyxxxnbqkdfmqjckzlk.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable___WHZT8UuetNNk3nNwaAaA_hgr6MmG_';
 const OWNER_KEY=K+'-cloud-owner';
@@ -289,6 +356,7 @@ if(configured&&window.supabase?.createClient){cloudClient=window.supabase.create
 else if(!configured)setAuthMessage('請在程式碼填入 Supabase Project URL 和 Publishable key');
 else setAuthMessage('Supabase 程式庫載入失敗，請確認網路連線');
 renderAuth();
+startPosterLoader();
 </script>
 </body>
 </html>
