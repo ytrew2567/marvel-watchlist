@@ -232,7 +232,7 @@ function startPosterLoader(){
  const apiKey=TMDB_API_KEY.trim();
  if(!apiKey||apiKey.includes('請填入'))return;
  let cache={};
- try{cache=JSON.parse(localStorage.getItem('mcu-tmdb-posters-v7')||'{}')||{}}catch(e){}
+ try{cache=JSON.parse(localStorage.getItem('mcu-tmdb-posters-v8')||'{}')||{}}catch(e){}
  const itemsById=Object.fromEntries(Object.values(MAP).map(x=>[x.id,x]));
  const pending=new Set(),queue=[];
  const setPoster=(id,url)=>{
@@ -251,7 +251,7 @@ function startPosterLoader(){
     const searchTitles=posterTitleVariants(queryTitle);
     const resultsById=new Map();
     for(const searchTitle of searchTitles){
-     for(const language of [searchTitle===queryTitle?'zh-TW':'en-US']){
+     for(const language of ['zh-TW','en-US']){
       const url=new URL('https://api.themoviedb.org/3/search/multi');
       if(!apiKey.includes('.'))url.searchParams.set('api_key',apiKey);
       url.searchParams.set('query',searchTitle);
@@ -271,7 +271,7 @@ function startPosterLoader(){
      let nameScore=0;
      for(const target of targets)for(const candidate of candidates){
       if(candidate===target)nameScore=Math.max(nameScore,14);
-      else if(target.length>=4&&(candidate.includes(target)||target.includes(candidate)))nameScore=Math.max(nameScore,5);
+      else if(target.length>=3&&(candidate.includes(target)||target.includes(candidate)))nameScore=Math.max(nameScore,5);
      }
      if(!nameScore)continue;
      let score=nameScore;
@@ -281,7 +281,7 @@ function startPosterLoader(){
      if(tvTypes.includes(item.p[2])&&result.media_type==='tv')score+=2;
      if(score>bestScore){best=result;bestScore=score;bestNameScore=nameScore}
     }
-    if(bestNameScore<5)best=null;
+    if(bestNameScore<3)best=null;
     let posterPath=best&&best.poster_path||'';
     if(best&&best.media_type==='tv'&&seasonInfo){
      const seriesPosterPath=posterPath;
@@ -303,189 +303,4 @@ function startPosterLoader(){
        if(chosen)posterPath=chosen.file_path;
       }
      }
-     if(!posterPath)posterPath=seriesPosterPath;
-    }
-    const poster=best&&posterPath?'https://image.tmdb.org/t/p/w185'+posterPath:'';
-    cache[item.id]=poster;setPoster(item.id,poster);
-    try{localStorage.setItem('mcu-tmdb-posters-v7',JSON.stringify(cache))}catch(e){}
-   }catch(e){
-    // Failed lookups are intentionally not cached
-   }
-   await new Promise(resolve=>setTimeout(resolve,350));
-  }
-  busy=false;
- };
- const observer=new IntersectionObserver(entries=>{
-  for(const entry of entries){
-   if(!entry.isIntersecting)continue;
-   const img=entry.target;observer.unobserve(img);
-   const id=img.dataset.posterId,item=itemsById[id];
-   if(item&&!pending.has(id)&&!cache[id]){pending.add(id);queue.push(item)}
-  }
-  run();
- },{rootMargin:'180px'});
- Object.values(itemsById).forEach(item=>{
-  if(cache[item.id]){setPoster(item.id,cache[item.id]);return}
-  (byId[item.id]||[]).forEach(o=>{const img=o.l.querySelector('.poster');if(img)observer.observe(img)});
- });
-}
-
-function parseSeasonTitle(title){
- const normalized=String(title).replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0));
- const patterns=[
-  /(第\s*(\d+|[零〇一二三四五六七八九十百]+)\s*季)/i,
-  /(\bseason\s0(\d+)\b)/i,
-  /((?:^|[\s(])S\s0(\d+)\b)/i
- ];
- for(const pattern of patterns){
-  const match=pattern.exec(normalized);
-  if(!match)continue;
-  const raw=match[2]||match[3];
-  const number=/^\d+$/.test(raw)?Number(raw):parseChineseSeasonNumber(raw);
-  if(!Number.isInteger(number)||number<0)continue;
-  const queryTitle=(normalized.slice(0,match.index)+normalized.slice(match.index+match[0].length))
-   .replace(/[\s([（【]+$/,'').replace(/^[\s)）】]+/,'').trim();
-  return {number,queryTitle};
- }
- return null;
-}
-
-function parseChineseSeasonNumber(value){
- const digits={零:0,〇:0,一:1,二:2,三:3,四:4,五:5,六:6,七:7,八:8,九:9};
- if(!value.includes('十')&&!value.includes('百'))return [...value].reduce((n,c)=>digits[c]===undefined?NaN:n*10+digits[c],0);
- let total=0,current=0;
- for(const char of value){
-  if(digits[char]!==undefined){current=digits[char];continue}
-  if(char==='十'){total+=(current||1)*10;current=0;continue}
-  if(char==='百'){total+=(current||1)*100;current=0;continue}
-  return NaN;
- }
- return total+current;
-}
-
-const TITLE_ALIASES={
-'霍華鴨':['Howard the Duck'],'蜘蛛人小故事':['Spidey Super Stories'],'蜘蛛人（1977真人影集）':['The Amazing Spider-Man'],'無敵浩克（1977真人影集）':['The Incredible Hulk'],'刀鋒戰士':['Blade'],'刀鋒戰士2':['Blade II'],'刀鋒戰士3':['Blade: Trinity'],
-'X戰警':['X-Men'],'X戰警2':['X2'],'X戰警：最後戰役':['X-Men: The Last Stand'],'X戰警：金鋼狼':['X-Men Origins: Wolverine'],'X戰警：第一戰':['X-Men: First Class'],'X戰警：未來昔日':['X-Men: Days of Future Past'],'X戰警：天啟':['X-Men: Apocalypse'],'X戰警：黑鳳凰':['Dark Phoenix'],'羅根':['Logan'],'死侍':['Deadpool'],'惡棍英雄：死侍':['Deadpool'],'死侍2':['Deadpool 2'],'死侍與金鋼狼':['Deadpool & Wolverine'],
-'蜘蛛人':['Spider-Man'],'蜘蛛人2':['Spider-Man 2'],'蜘蛛人3':['Spider-Man 3'],'蜘蛛人驚奇再起':['The Amazing Spider-Man'],'蜘蛛人驚奇再起2：電光之戰':['The Amazing Spider-Man 2'],'蜘蛛人：返校日':['Spider-Man: Homecoming'],'蜘蛛人：離家日':['Spider-Man: Far From Home'],'蜘蛛人：無家日':['Spider-Man: No Way Home'],'蜘蛛人：重生日':['Spider-Man: Brand New Day'],'蜘蛛人：新宇宙':['Spider-Man: Into the Spider-Verse'],'蜘蛛人：穿越新宇宙':['Spider-Man: Across the Spider-Verse'],'蜘蛛人：超越新宇宙':['Spider-Man: Beyond the Spider-Verse'],'蜘蛛人：你的友好鄰居':['Your Friendly Neighborhood Spider-Man'],'蜘蛛人：你的友好鄰居 第2季':['Your Friendly Neighborhood Spider-Man'],
-'鋼鐵人':['Iron Man'],'鋼鐵人2':['Iron Man 2'],'鋼鐵人3':['Iron Man 3'],'無敵浩克':['The Incredible Hulk'],'綠巨人浩克':['Hulk'],'雷神索爾':['Thor'],'雷神索爾2：黑暗世界':['Thor: The Dark World'],'雷神索爾3：諸神黃昏':['Thor: Ragnarok'],'雷神索爾4：愛與雷霆':['Thor: Love and Thunder'],'美國隊長':['Captain America: The First Avenger'],'美國隊長2：酷寒戰士':['Captain America: The Winter Soldier'],'美國隊長3：英雄內戰':['Captain America: Civil War'],'美國隊長：無畏新世界':['Captain America: Brave New World'],'復仇者聯盟':['The Avengers'],'復仇者聯盟：奧創紀元':['Avengers: Age of Ultron'],'復仇者聯盟：無限之戰':['Avengers: Infinity War'],'復仇者聯盟：終局之戰':['Avengers: Endgame'],'復仇者聯盟：末日之戰':['Avengers: Doomsday'],'復仇者聯盟：秘密戰爭':['Avengers: Secret Wars'],
-'蟻人':['Ant-Man'],'蟻人與黃蜂女':['Ant-Man and the Wasp'],'蟻人與黃蜂女：量子狂熱':['Ant-Man and the Wasp: Quantumania'],'奇異博士':['Doctor Strange'],'奇異博士2：失控多重宇宙':['Doctor Strange in the Multiverse of Madness'],'黑豹':['Black Panther'],'黑豹2：瓦干達萬歲':['Black Panther: Wakanda Forever'],'尚氣與十環傳奇':['Shang-Chi and the Legend of the Ten Rings'],'驚奇隊長':['Captain Marvel'],'驚奇隊長2':['The Marvels'],'永恆族':['Eternals'],'星際異攻隊':['Guardians of the Galaxy'],'星際異攻隊2':['Guardians of the Galaxy Vol. 2'],'星際異攻隊3':['Guardians of the Galaxy Vol. 3'],'雷霆特攻隊*':['Thunderbolts*','Thunderbolts'],'驚奇4超人：第一步':['The Fantastic Four: First Steps'],'驚奇4超人':['Fantastic Four'],'驚奇4超人：銀色衝浪手現身':['Fantastic Four: Rise of the Silver Surfer'],'猛毒':['Venom'],'猛毒2：血蜘蛛':['Venom: Let There Be Carnage'],'猛毒最終章：最後一舞':['Venom: The Last Dance'],'魔比斯':['Morbius'],'蜘蛛夫人':['Madame Web'],'獵人克萊文':['Kraven the Hunter'],'惡靈戰警':['Ghost Rider'],'惡靈戰警：復仇時刻':['Ghost Rider: Spirit of Vengeance'],'神鬼制裁':['The Punisher'],'神鬼制裁2：就地正法':['Punisher: War Zone'],'幻影殺手':['Elektra'],'變種人':['The New Mutants'],'大英雄天團':['Big Hero 6'],
-'汪達幻視':['WandaVision'],'獵鷹與酷寒戰士':['The Falcon and the Winter Soldier'],'洛基':['Loki'],'洛基 第1季':['Loki'],'洛基 第2季':['Loki'],'無限可能：假如…？':['What If...?'],'無限可能：假如…？第1季':['What If...?'],'無限可能：假如…？第2季':['What If...?'],'無限可能：假如…？第3季':['What If...?'],'鷹眼':['Hawkeye'],'月光騎士':['Moon Knight'],'驚奇少女':['Ms. Marvel'],'我是格魯特':['I Am Groot'],'我是格魯特 第1季':['I Am Groot'],'我是格魯特 第2季':['I Am Groot'],'律師女浩克':['She-Hulk: Attorney at Law'],'暗夜狼人（特別篇）':['Werewolf by Night'],'星際異攻隊：聖誕特別篇':['The Guardians of the Galaxy Holiday Special'],'秘密入侵':['Secret Invasion'],'回聲女':['Echo'],'X戰警 ’97':['X-Men ’97','X-Men 97'],'X戰警 ’97 第2季':['X-Men ’97','X-Men 97'],'阿嘉莎：無所不在':['Agatha All Along'],'蜘蛛人：你的友好鄰居':['Your Friendly Neighborhood Spider-Man'],'夜魔俠：重生':['Daredevil: Born Again'],'夜魔俠：重生 第1季':['Daredevil: Born Again'],'夜魔俠：重生 第2季':['Daredevil: Born Again'],'夜魔俠：重生 第3季':['Daredevil: Born Again'],'鋼鐵心':['Ironheart'],'瓦干達之眼':['Eyes of Wakanda'],'漫威喪屍':['Marvel Zombies'],'漫威喪屍特別篇':['Marvel Zombies'],'神力人':['Wonder Man'],'制裁者：最後一擊':['The Punisher: One Last Kill'],'幻視任務':['VisionQuest'],'漫威影業：傳奇（精華回顧）':['Marvel Studios: Legends','Marvel Studios Legends'],
-'夜魔俠':['Daredevil','Marvel\'s Daredevil'],'漫威夜魔俠':['Daredevil','Marvel\'s Daredevil'],'漫威夜魔俠 第1季':['Daredevil','Marvel\'s Daredevil'],'漫威夜魔俠 第2季':['Daredevil','Marvel\'s Daredevil'],'漫威夜魔俠 第3季':['Daredevil','Marvel\'s Daredevil'],'潔西卡・瓊斯':['Jessica Jones'],'潔西卡・瓊斯 第1季':['Jessica Jones'],'潔西卡・瓊斯 第2季':['Jessica Jones'],'潔西卡・瓊斯 第3季':['Jessica Jones'],'漫威：盧克・凱奇':['Luke Cage'],'漫威：盧克・凱奇第2季':['Luke Cage'],'鐵拳俠':['Iron Fist'],'鐵拳俠 第1季':['Iron Fist'],'鐵拳俠 第2季':['Iron Fist'],'捍衛者聯盟':['The Defenders'],'制裁者':['The Punisher'],'制裁者 第2季':['The Punisher'],'神盾局特工':['Agents of S.H.I.E.L.D.'],'卡特探員':['Agent Carter'],'變種軍團':['Legion'],'異人族':['Inhumans'],'天賦異稟':['The Gifted'],'離家童盟':['Runaways'],'斗篷與匕首':['Cloak & Dagger'],'地獄風暴':['Helstrom'],
-'雷神索爾小隊':['Team Thor'],'雷神索爾小隊：第二集':['Team Thor: Part 2'],'弗雷德與巴尼遇見石頭人':['Fred and Barney Meet the Thing'],'漫威崛起：起源':['Marvel Rising: Initiation'],'魔多客':['M.O.D.O.K.'],'鋼鐵人與超棒朋友們':['Iron Man and His Awesome Friends'],'認識鋼鐵人與超棒朋友們':['Meet Iron Man and His Awesome Friends'],'金鋼狼與X戰警':['Wolverine and the X-Men'],'終極復仇者':['Ultimate Avengers'],'終極復仇者2':['Ultimate Avengers 2'],'無敵鋼鐵人':['The Invincible Iron Man'],'奇異博士：至尊法師':['Doctor Strange: The Sorcerer Supreme'],'浩克星球':['Planet Hulk'],'雷神索爾：阿斯嘉傳說':['Thor: Tales of Asgard'],'復仇者：世上最強英雄':['The Avengers: Earth’s Mightiest Heroes'],'華麗蜘蛛人':['The Spectacular Spider-Man'],'鋼鐵人：裝甲冒險':['Iron Man: Armored Adventures'],'漫威喪屍':['Marvel Zombies']
-};
-function titleAliases(title){const direct=TITLE_ALIASES[title]||[];return [...new Set([title,...direct])];}
-
-function posterTitleVariants(title){
- const raw=String(title).trim();
- const cleaned=raw.replace(/\s*[（(][^）)]*[）)]\s*$/,'').trim();
- const variants=[...titleAliases(raw),...titleAliases(cleaned)];
- if(normTitle(cleaned)===normTitle('復仇者聯盟：末日之戰'))variants.push('Avengers: Doomsday');
- return [...new Set(variants.map(x=>String(x).trim()).filter(Boolean))];
-}
-function normTitle(s){return String(s).normalize('NFKC').toLocaleLowerCase().replace(/[\s　・·:：,，.。’'!?！？()（）\[\]【】&＋+\-]/g,'')}
-
-function refresh(){
-  const mu=document.body.classList.contains('mu'),un=document.body.classList.contains('un');
-  const q=normTitle($('searchInput').value.trim());
-  const type=$('typeFilter').value,status=$('statusFilter').value;
-  const matches=x=>{
-    const watched=!!st[x.id],text=titleAliases(x.p[1]).map(normTitle).join(' ');
-    return (!mu||x.l.classList.contains('must'))&&(!un||!watched)
-      &&(!q||text.includes(q))&&(type==='all'||x.p[2]===type)
-      &&(status==='all'||(status==='watched'?watched:!watched));
-  };
-  for(const id in byId)byId[id].forEach(o=>{
-    o.c.checked=!!st[id];o.l.classList.toggle('done',!!st[id]);o.l.hidden=!matches(o);
-  });
-  const mi=[...MUST].map(t=>MAP[t]&&MAP[t].id).filter(Boolean);
-  $('cnt2').textContent='必看 '+mi.filter(i=>st[i]).length+' / '+mi.length;
-
-  secs.forEach(s=>{
-    const shown=s.items.filter(matches),av=shown.filter(x=>!x.lk),dn=av.filter(x=>st[x.id]).length;
-    s.sm.parentNode.hidden=!shown.length;
-    s.sm.querySelector('.n').textContent=(!av.length&&shown.length)?shown.length+' 部未上映':dn+' / '+av.length;
-    s.sm.querySelector('.all').textContent=(av.length&&dn===av.length)?'取消':'全選';
-  });
-
-  tls.forEach(g=>{
-    const shown=g.items.filter(matches),av=shown.filter(x=>!x.lk);
-    g.n.textContent=(!av.length&&shown.length)?shown.length+' 部未上映':av.filter(x=>st[x.id]).length+' / '+av.length;
-    g.n.parentNode.parentNode.hidden=!shown.length;
-  });
-
-  // 動態根據當前分頁（上映順序 / 完整時間線 / 只看電影）計算總進度
-  let targetItems=[];
-  if(cur===0){
-    secs.forEach(s=>{if(!s.o){s.items.forEach(x=>{if(!x.lk)targetItems.push(x);});}});
-  }else if(cur===1){
-    if(sub===0){targetItems=tlItems.filter(x=>!x.lk);}
-    else{targetItems=tlmItems.filter(x=>!x.lk);}
-  }
-  const b=targetItems.length;
-  const a=targetItems.filter(x=>st[x.id]).length;
-
-  const p=b?Math.round(a/b*100):0;
-  $('pct').textContent=p+'%';$('cnt').textContent='已看 '+a+' / '+b+' 部';$('fill').style.width=p+'%';
-}
-
-const $=id=>document.getElementById(id);
-let cur=0,sub=0;
-function show(){document.getElementById('list').hidden=cur!==0;document.getElementById('tl').hidden=!(cur===1&&sub===0);document.getElementById('tlm').hidden=!(cur===1&&sub===1);document.getElementById('stabs').hidden=cur!==1;$('t0').classList.toggle('on',cur===0);$('t1').classList.toggle('on',cur===1);$('s0').classList.toggle('on',sub===0);$('s1').classList.toggle('on',sub===1);refresh();}
-function tab(k){cur=k;show()}
-$('s0').onclick=()=>{sub=0;show()};$('s1').onclick=()=>{sub=1;show()};
-$('t0').onclick=()=>tab(0);$('t1').onclick=()=>tab(1);tab(0);
-
-$('bmu').onclick=function(){document.body.classList.toggle('mu');this.classList.toggle('on');refresh()};
-$('bun').onclick=function(){document.body.classList.toggle('un');this.classList.toggle('on');refresh()};
-$('searchInput').addEventListener('input',refresh);
-$('typeFilter').addEventListener('change',refresh);
-$('statusFilter').addEventListener('change',refresh);
-$('bop').onclick=()=>document.querySelectorAll('details').forEach(d=>d.open=true);
-$('bcl').onclick=()=>document.querySelectorAll('details').forEach(d=>d.open=false);
-let t;
-$('brs').onclick=function(){
-  if(this.dataset.c){st={};save();secs.forEach(s=>s.items.forEach(x=>{x.c.checked=false}));refresh();this.textContent='重置勾選';delete this.dataset.c;clearTimeout(t);return}
-  this.dataset.c=1;this.textContent='再按一次確認重置';
-  t=setTimeout(()=>{this.textContent='重置勾選';delete this.dataset.c},3000);
-};
-
-refresh();
-
-const TMDB_API_KEY='eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI1YjU4NjUzNTVjNDk2Y2ZhMWZhNjcxOWJjNTM5N2Y0NiIsIm5iZiI6MTc5Mjg1ODY1OC42NDcsInN1YiI6IjZhZGNkYTIyZWIyYzExZDU1YmJkNjI5ZCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.45gf6RDB287RQb3lAcOpCVxa1mvP7CpP6yBoI2SxVzU';
-const SUPABASE_URL='https://tqyxxxnbqkdfmqjckzlk.supabase.co';
-const SUPABASE_PUBLISHABLE_KEY='sb_publishable___WHZT8UuetNNk3nNwaAaA_hgr6MmG_';
-const OWNER_KEY=K+'-cloud-owner';
-
-let cloudClient=null,cloudUser=null,cloudLoaded=false,loadingUserId=null,cloudTimer=null;
-const configured=SUPABASE_URL.startsWith('https://')&&!SUPABASE_URL.includes('請填入')&&SUPABASE_PUBLISHABLE_KEY.length>20&&!SUPABASE_PUBLISHABLE_KEY.includes('請填入');
-function setAuthMessage(msg){$('authMsg').textContent=msg;$('sy').textContent=msg}
-function renderAuth(){const signedIn=!!cloudUser;$('emailInput').hidden=signedIn;$('loginBtn').hidden=signedIn;$('logoutBtn').hidden=!signedIn;if(signedIn)setAuthMessage('已登入 '+cloudUser.email+'；進度會同步到你的帳號')}
-async function saveCloud(){if(!cloudClient||!cloudUser||!cloudLoaded)return;const {error}=await cloudClient.from('watch_progress').upsert({user_id:cloudUser.id,done:st,updated_at:new Date().toISOString()},{onConflict:'user_id'});if(error)throw error}
-function scheduleCloudSave(){clearTimeout(cloudTimer);cloudTimer=setTimeout(async()=>{try{await saveCloud();setAuthMessage('已同步到你的帳號')}catch(e){setAuthMessage('雲端同步失敗；本機進度仍已保留，請稍後再試')}},500)}
-
-async function loadCloudProgress(user){
- if(loadingUserId===user.id||(cloudLoaded&&cloudUser?.id===user.id))return;
- loadingUserId=user.id;cloudLoaded=false;cloudUser=user;renderAuth();setAuthMessage('正在載入雲端進度…');
- try{
-  const {data,error}=await cloudClient.from('watch_progress').select('done').eq('user_id',user.id).maybeSingle();if(error)throw error;
-  const owner=localStorage.getItem(OWNER_KEY)||'';let next={};
-  if(data){next=data.done||{};if(!owner){next={...next,...st};const {error:writeError}=await cloudClient.from('watch_progress').upsert({user_id:user.id,done:next,updated_at:new Date().toISOString()},{onConflict:'user_id'});if(writeError)throw writeError}}
-  else{next=(!owner||owner===user.id)?{...st}:{};const {error:writeError}=await cloudClient.from('watch_progress').upsert({user_id:user.id,done:next,updated_at:new Date().toISOString()},{onConflict:'user_id'});if(writeError)throw writeError}
-  st=next;try{localStorage.setItem(K,JSON.stringify(st));localStorage.setItem(OWNER_KEY,user.id)}catch(e){}
-  cloudLoaded=true;push=scheduleCloudSave;refresh();setAuthMessage('已登入 '+user.email+'；進度已同步');
- }catch(e){cloudUser=null;cloudLoaded=false;push=null;renderAuth();setAuthMessage('無法載入雲端進度。請確認資料表 watch_progress 與登入設定')}
- finally{loadingUserId=null}
-}
-
-$('loginBtn').onclick=async()=>{const email=$('emailInput').value.trim();if(!email){setAuthMessage('請先輸入 Email');return}if(!configured||!cloudClient){setAuthMessage('請先在程式碼填入 Supabase Project URL 和 Publishable key');return}$('loginBtn').disabled=true;setAuthMessage('正在寄送登入連結…');try{const {error}=await cloudClient.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});if(error)throw error;setAuthMessage('登入連結已寄出，請查看 Email 並點擊連結登入')}catch(e){setAuthMessage('寄送失敗：請確認 Email、登入設定和 Redirect URL')}finally{$('loginBtn').disabled=false}};
-$('logoutBtn').onclick=async()=>{if(!cloudClient)return;const {error}=await cloudClient.auth.signOut();if(error){setAuthMessage('登出失敗，請稍後再試');return}cloudUser=null;cloudLoaded=false;push=null;renderAuth();setAuthMessage('已登出；此裝置保留目前進度')};
-
-if(configured&&window.supabase?.createClient){cloudClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);cloudClient.auth.onAuthStateChange((event,session)=>{if(session?.user)setTimeout(()=>loadCloudProgress(session.user),0);else if(event==='SIGNED_OUT'){cloudUser=null;cloudLoaded=false;push=null;renderAuth();setAuthMessage('已登出；此裝置保留目前進度')}});cloudClient.auth.getSession().then(({data,error})=>{if(error)throw error;if(data.session?.user)loadCloudProgress(data.session.user)}).catch(()=>setAuthMessage('無法連線 Supabase，請稍後重新整理'))}
-else if(!configured)setAuthMessage('請在程式碼填入 Supabase Project URL 和 Publishable key');
-else setAuthMessage('Supabase 程式庫載入失敗，請確認網路連線');
-
-renderAuth();
-startPosterLoader();
-</script>
-</body>
-</html>
+     if(!posterPath)posterPath=series
