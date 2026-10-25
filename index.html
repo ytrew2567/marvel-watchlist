@@ -966,7 +966,8 @@ function refresh(){
 
 const $=id=>document.getElementById(id);
 
-let cur=0,sub=0;
+let cur=0,sub=0;const TF_ALL=document.getElementById('typeFilter').innerHTML;
+
 
 function show(){document.getElementById('list').hidden=cur!==0;document.getElementById('tl').hidden=!(cur===1&&sub===0);document.getElementById('tlm').hidden=!(cur===1&&sub===1);document.getElementById('stabs').hidden=cur!==1;$('t0').classList.toggle('on',cur===0);$('t1').classList.toggle('on',cur===1);$('s0').classList.toggle('on',sub===0);$('s1').classList.toggle('on',sub===1);refresh();}
 
@@ -1083,5 +1084,21 @@ startPosterLoader();
 </script>
 
 </body>
+
+<script>
+(function(){
+ const tf=document.getElementById('typeFilter'),ALL=tf.innerHTML;
+ function sync(){
+  const onlyMovies=!document.getElementById('tlm').hidden;
+  const v=tf.value;
+  tf.innerHTML=onlyMovies?'<option value="all">全部類型</option><option value="M">MCU</option>':ALL;
+  tf.value=[...tf.options].some(o=>o.value===v)?v:'all';
+  refresh();
+ }
+ ['t0','t1','s0','s1'].forEach(id=>document.getElementById(id).addEventListener('click',sync));
+ sync();
+})();
+</script>
+
 
 </html>
