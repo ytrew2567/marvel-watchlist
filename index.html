@@ -322,7 +322,7 @@ function save(){try{localStorage.setItem(K,JSON.stringify(st))}catch(e){}if(push
 
 const now=new Date(),root=document.getElementById('list'),secs=[];
 
-const byId={},MAP={},ITEM={},MUST=new Set(['復仇者聯盟：終局之戰','洛基 第1季','洛基 第2季','奇異博士2：失控多重宇宙','蟻人與黃蜂女：量子狂熱','蜘蛛人：無家日','死侍與金鋼狼','雷霆特攻隊*','驚奇4超人：第一步','蜘蛛人：重生日','美國隊長','復仇者聯盟','復仇者聯盟：無限之戰','尚氣與十環傳奇','黑豹2：瓦干達萬歲','美國隊長：無畏新世界','瓦干達之眼','汪達幻視','獵鷹與酷寒戰士','X戰警','X戰警2','X戰警：第一戰']);
+const byId={},MAP={},ITEM={},releaseMovieIds=new Set(),MUST=new Set(['復仇者聯盟：終局之戰','洛基 第1季','洛基 第2季','奇異博士2：失控多重宇宙','蟻人與黃蜂女：量子狂熱','蜘蛛人：無家日','死侍與金鋼狼','雷霆特攻隊*','驚奇4超人：第一步','蜘蛛人：重生日','美國隊長','復仇者聯盟','復仇者聯盟：無限之戰','尚氣與十環傳奇','黑豹2：瓦干達萬歲','美國隊長：無畏新世界','瓦干達之眼','汪達幻視','獵鷹與酷寒戰士','X戰警','X戰警2','X戰警：第一戰']);
 
 
 
@@ -373,6 +373,8 @@ D.forEach((s,i)=>{
   s[1].forEach((r,j)=>{
 
     const p=r.split('|'),id=i+'-'+j,o=mk(p,id);MAP[p[1]]=o;
+
+if(s[0].startsWith('電影 ')||s[0]==='動畫長片與直接發行影片'||(s[0]==='尚未上映（已公布）'&&p[2]!=='D'))releaseMovieIds.add(id)
 
     d.appendChild(o.l);items.push(o);
 
@@ -892,6 +894,8 @@ function refresh(){
 
       &&(!q||text.includes(q))&&(type==='all'||x.p[2]===type)
 
+      &&(cur!==0||sub!==1||releaseMovieIds.has(x.id))
+
       &&(status==='all'||(status==='watched'?watched:!watched));
 
   };
@@ -940,7 +944,7 @@ function refresh(){
 
   if(cur===0){
 
-    secs.forEach(s=>{if(!s.o){s.items.forEach(x=>{if(!x.lk)targetItems.push(x);});}});
+    secs.forEach(s=>{if(!s.o){s.items.forEach(x=>{if(!x.lk&&(sub===0||releaseMovieIds.has(x.id)))targetItems.push(x);});}});
 
   }else if(cur===1){
 
@@ -969,7 +973,19 @@ const $=id=>document.getElementById(id);
 let cur=0,sub=0;const TF_ALL=document.getElementById('typeFilter').innerHTML;
 
 
-function show(){document.getElementById('list').hidden=cur!==0;document.getElementById('tl').hidden=!(cur===1&&sub===0);document.getElementById('tlm').hidden=!(cur===1&&sub===1);document.getElementById('stabs').hidden=cur!==1;$('t0').classList.toggle('on',cur===0);$('t1').classList.toggle('on',cur===1);$('s0').classList.toggle('on',sub===0);$('s1').classList.toggle('on',sub===1);refresh();}
+function show(){
+  document.getElementById('list').hidden=cur!==0;
+  document.getElementById('tl').hidden=!(cur===1&&sub===0);
+  document.getElementById('tlm').hidden=!(cur===1&&sub===1);
+  document.getElementById('stabs').hidden=false;
+  $('s0').textContent=cur===0?'全部作品':'完整時間線';
+  $('s1').textContent='只看電影';
+  $('t0').classList.toggle('on',cur===0);
+  $('t1').classList.toggle('on',cur===1);
+  $('s0').classList.toggle('on',sub===0);
+  $('s1').classList.toggle('on',sub===1);
+  refresh();
+}
 
 function tab(k){cur=k;show()}
 
