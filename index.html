@@ -166,6 +166,12 @@ function mk(p,id){
   const lk=p[3]&&now<new Date(p[3]),m=MUST.has(p[1]);
   const l=document.createElement('label');l.className='it'+(lk?' lock':'')+(m?' must':'');
   l.innerHTML='<input type="checkbox"'+(lk?' disabled':'')+'><img class="poster" data-poster-id="'+id+'" loading="lazy" decoding="async" alt=""><span class="y">'+p[0]+'</span><span class="t">'+p[1]+'</span>'+(m?'<b class="mk">必看</b>':'')+'<em>'+(lk?'未上映':TG[p[2]])+'</em>';
+  const posterImg = l.querySelector('.poster');
+
+posterImg.addEventListener('error', () => {
+  posterImg.removeAttribute('src');
+  posterImg.dataset.failed = 'true';
+});
   const c=l.querySelector('input');
   if(!lk){c.checked=!!st[id];c.addEventListener('change',()=>{c.checked?st[id]=1:delete st[id];save();refresh()})}
   (byId[id]=byId[id]||[]).push({id,l,c,lk,p});
@@ -232,8 +238,11 @@ function startPosterLoader(){
  const apiKey=TMDB_API_KEY.trim();
  if(!apiKey||apiKey.includes('請填入'))return;
  let cache={};
- try{cache=JSON.parse(localStorage.getItem('mcu-tmdb-posters-v7')||'{}')||{}}catch(e){}
- const itemsById=Object.fromEntries(Object.values(MAP).map(x=>[x.id,x]));
+ try{cache=JSON.parse(localStorage.getItem('mcu-tmdb-posters-v8')||'{}')||{}}catch(e){}
+ // 改由唯一作品 ID 建立清單，不再透過作品名稱去重
+const itemsById = Object.fromEntries(
+  Object.keys(byId).map(id => [id, byId[id][0]])
+);
  const pending=new Set(),queue=[];
  const setPoster=(id,url)=>{
   (byId[id]||[]).forEach(o=>{const img=o.l.querySelector('.poster');if(img&&url)img.src=url});
@@ -283,31 +292,111 @@ function startPosterLoader(){
     }
     if(bestNameScore<5)best=null;
     let posterPath=best&&best.poster_path||'';
-    if(best&&best.media_type==='tv'&&seasonInfo){
-     const seriesPosterPath=posterPath;
-     posterPath='';
-     const seasonUrl=new URL('https://api.themoviedb.org/3/tv/'+best.id+'/season/'+seasonInfo.number);
-     if(!apiKey.includes('.'))seasonUrl.searchParams.set('api_key',apiKey);
-     seasonUrl.searchParams.set('language','zh-TW');
-     const seasonResponse=await fetch(seasonUrl,{headers});
-     if(seasonResponse.ok){const seasonData=await seasonResponse.json();if(seasonData.poster_path)posterPath=seasonData.poster_path}
-     if(!posterPath){
-      const imagesUrl=new URL('https://api.themoviedb.org/3/tv/'+best.id+'/season/'+seasonInfo.number+'/images');
-      if(!apiKey.includes('.'))imagesUrl.searchParams.set('api_key',apiKey);
-      imagesUrl.searchParams.set('include_image_language','zh,en,null');
-      const imagesResponse=await fetch(imagesUrl,{headers});
-      if(imagesResponse.ok){
-       const imagesData=await imagesResponse.json(),posters=imagesData.posters||[];
-       posters.sort((a,b)=>b.vote_average-a.vote_average);
-       const chosen=posters.find(x=>x.iso_639_1==='zh')||posters.find(x=>x.iso_639_1==='en')||posters[0];
-       if(chosen)posterPath=chosen.file_path;
-      }
-     }
-     if(!posterPath)posterPath=seriesPosterPath;
+    
+if (best && best.media_type === 'tv' && seasonInfo) {
+  let series = best;
+
+  // 夜魔俠：重生使用確定的 TMDB 影集 ID
+  const isBornAgain =
+    normTitle(queryTitle) === normTitle('夜魔俠：重生');
+
+  if (isBornAgain) {
+    const seriesUrl = new URL(
+      'https://api.themoviedb.org/3/tv/202555'
+    );
+
+    if (!apiKey.includes('.')) {
+      seriesUrl.searchParams.set('api_key', apiKey);
     }
+
+    seriesUrl.searchParams.set('language', 'zh-TW');
+
+    const seriesResponse = await fetch(seriesUrl, { headers });
+
+    if (seriesResponse.ok) {
+      series = await seriesResponse.json();
+    }
+  }
+
+  // 先使用影集主海報作為備援
+  const seriesPosterPath =
+    series.poster_path || best.poster_path || '';
+
+  posterPath = '';
+
+  // 優先取得第二季專屬海報
+  const seasonUrl = new URL(
+    'https://api.themoviedb.org/3/tv/' +
+    series.id +
+    '/season/' +
+    seasonInfo.number
+  );
+
+  if (!apiKey.includes('.')) {
+    seasonUrl.searchParams.set('api_key', apiKey);
+  }
+
+  seasonUrl.searchParams.set('language', 'zh-TW');
+
+  const seasonResponse = await fetch(seasonUrl, { headers });
+
+  if (seasonResponse.ok) {
+    const seasonData = await seasonResponse.json();
+    if (seasonData.poster_path) {
+      posterPath = seasonData.poster_path;
+    }
+  }
+
+  // 找不到季海報時，再查詢季別圖片
+  if (!posterPath) {
+    const imagesUrl = new URL(
+      'https://api.themoviedb.org/3/tv/' +
+      series.id +
+      '/season/' +
+      seasonInfo.number +
+      '/images'
+    );
+
+    if (!apiKey.includes('.')) {
+      imagesUrl.searchParams.set('api_key', apiKey);
+    }
+
+    imagesUrl.searchParams.set(
+      'include_image_language',
+      'zh,en,null'
+    );
+
+    const imagesResponse = await fetch(imagesUrl, { headers });
+
+    if (imagesResponse.ok) {
+      const imagesData = await imagesResponse.json();
+      const posters = imagesData.posters || [];
+
+      posters.sort(
+        (a, b) => (b.vote_average || 0) - (a.vote_average || 0)
+      );
+
+      const chosen =
+        posters.find(x => x.iso_639_1 === 'zh') ||
+        posters.find(x => x.iso_639_1 === 'en') ||
+        posters.find(x => x.iso_639_1 === null) ||
+        posters[0];
+
+      if (chosen) {
+        posterPath = chosen.file_path;
+      }
+    }
+  }
+
+  // 第二季沒有獨立海報時，至少顯示影集主海報
+  if (!posterPath) {
+    posterPath = seriesPosterPath;
+  }
+}
+
     const poster=best&&posterPath?'https://image.tmdb.org/t/p/w185'+posterPath:'';
     cache[item.id]=poster;setPoster(item.id,poster);
-    try{localStorage.setItem('mcu-tmdb-posters-v7',JSON.stringify(cache))}catch(e){}
+    try{localStorage.setItem('mcu-tmdb-posters-v8',JSON.stringify(cache))}catch(e){}
    }catch(e){
     // Failed lookups are intentionally not cached
    }
@@ -371,8 +460,30 @@ const TITLE_ALIASES={
 '蟻人':['Ant-Man'],'蟻人與黃蜂女':['Ant-Man and the Wasp'],'蟻人與黃蜂女：量子狂熱':['Ant-Man and the Wasp: Quantumania'],'奇異博士':['Doctor Strange'],'奇異博士2：失控多重宇宙':['Doctor Strange in the Multiverse of Madness'],'黑豹':['Black Panther'],'黑豹2：瓦干達萬歲':['Black Panther: Wakanda Forever'],'尚氣與十環傳奇':['Shang-Chi and the Legend of the Ten Rings'],'驚奇隊長':['Captain Marvel'],'驚奇隊長2':['The Marvels'],'永恆族':['Eternals'],'星際異攻隊':['Guardians of the Galaxy'],'星際異攻隊2':['Guardians of the Galaxy Vol. 2'],'星際異攻隊3':['Guardians of the Galaxy Vol. 3'],'雷霆特攻隊*':['Thunderbolts*','Thunderbolts'],'驚奇4超人：第一步':['The Fantastic Four: First Steps'],'驚奇4超人':['Fantastic Four'],'驚奇4超人：銀色衝浪手現身':['Fantastic Four: Rise of the Silver Surfer'],'猛毒':['Venom'],'猛毒2：血蜘蛛':['Venom: Let There Be Carnage'],'猛毒最終章：最後一舞':['Venom: The Last Dance'],'魔比斯':['Morbius'],'蜘蛛夫人':['Madame Web'],'獵人克萊文':['Kraven the Hunter'],'惡靈戰警':['Ghost Rider'],'惡靈戰警：復仇時刻':['Ghost Rider: Spirit of Vengeance'],'神鬼制裁':['The Punisher'],'神鬼制裁2：就地正法':['Punisher: War Zone'],'幻影殺手':['Elektra'],'變種人':['The New Mutants'],'大英雄天團':['Big Hero 6'],
 '汪達幻視':['WandaVision'],'獵鷹與酷寒戰士':['The Falcon and the Winter Soldier'],'洛基':['Loki'],'洛基 第1季':['Loki'],'洛基 第2季':['Loki'],'無限可能：假如…？':['What If...?'],'無限可能：假如…？第1季':['What If...?'],'無限可能：假如…？第2季':['What If...?'],'無限可能：假如…？第3季':['What If...?'],'鷹眼':['Hawkeye'],'月光騎士':['Moon Knight'],'驚奇少女':['Ms. Marvel'],'我是格魯特':['I Am Groot'],'我是格魯特 第1季':['I Am Groot'],'我是格魯特 第2季':['I Am Groot'],'律師女浩克':['She-Hulk: Attorney at Law'],'暗夜狼人（特別篇）':['Werewolf by Night'],'星際異攻隊：聖誕特別篇':['The Guardians of the Galaxy Holiday Special'],'秘密入侵':['Secret Invasion'],'回聲女':['Echo'],'X戰警 ’97':['X-Men ’97','X-Men 97'],'X戰警 ’97 第2季':['X-Men ’97','X-Men 97'],'阿嘉莎：無所不在':['Agatha All Along'],'蜘蛛人：你的友好鄰居':['Your Friendly Neighborhood Spider-Man'],'夜魔俠：重生':['Daredevil: Born Again'],'夜魔俠：重生 第1季':['Daredevil: Born Again'],'夜魔俠：重生 第2季':['Daredevil: Born Again'],'夜魔俠：重生 第3季':['Daredevil: Born Again'],'鋼鐵心':['Ironheart'],'瓦干達之眼':['Eyes of Wakanda'],'漫威喪屍':['Marvel Zombies'],'漫威喪屍特別篇':['Marvel Zombies'],'神力人':['Wonder Man'],'制裁者：最後一擊':['The Punisher: One Last Kill'],'幻視任務':['VisionQuest'],'漫威影業：傳奇（精華回顧）':['Marvel Studios: Legends','Marvel Studios Legends'],
 '夜魔俠':['Daredevil','Marvel\'s Daredevil'],'漫威夜魔俠':['Daredevil','Marvel\'s Daredevil'],'漫威夜魔俠 第1季':['Daredevil','Marvel\'s Daredevil'],'漫威夜魔俠 第2季':['Daredevil','Marvel\'s Daredevil'],'漫威夜魔俠 第3季':['Daredevil','Marvel\'s Daredevil'],'潔西卡・瓊斯':['Jessica Jones'],'潔西卡・瓊斯 第1季':['Jessica Jones'],'潔西卡・瓊斯 第2季':['Jessica Jones'],'潔西卡・瓊斯 第3季':['Jessica Jones'],'漫威：盧克・凱奇':['Luke Cage'],'漫威：盧克・凱奇第2季':['Luke Cage'],'鐵拳俠':['Iron Fist'],'鐵拳俠 第1季':['Iron Fist'],'鐵拳俠 第2季':['Iron Fist'],'捍衛者聯盟':['The Defenders'],'制裁者':['The Punisher'],'制裁者 第2季':['The Punisher'],'神盾局特工':['Agents of S.H.I.E.L.D.'],'卡特探員':['Agent Carter'],'變種軍團':['Legion'],'異人族':['Inhumans'],'天賦異稟':['The Gifted'],'離家童盟':['Runaways'],'斗篷與匕首':['Cloak & Dagger'],'地獄風暴':['Helstrom'],
-'雷神索爾小隊':['Team Thor'],'雷神索爾小隊：第二集':['Team Thor: Part 2'],'弗雷德與巴尼遇見石頭人':['Fred and Barney Meet the Thing'],'漫威崛起：起源':['Marvel Rising: Initiation'],'魔多客':['M.O.D.O.K.'],'鋼鐵人與超棒朋友們':['Iron Man and His Awesome Friends'],'認識鋼鐵人與超棒朋友們':['Meet Iron Man and His Awesome Friends'],'金鋼狼與X戰警':['Wolverine and the X-Men'],'終極復仇者':['Ultimate Avengers'],'終極復仇者2':['Ultimate Avengers 2'],'無敵鋼鐵人':['The Invincible Iron Man'],'奇異博士：至尊法師':['Doctor Strange: The Sorcerer Supreme'],'浩克星球':['Planet Hulk'],'雷神索爾：阿斯嘉傳說':['Thor: Tales of Asgard'],'復仇者：世上最強英雄':['The Avengers: Earth’s Mightiest Heroes'],'華麗蜘蛛人':['The Spectacular Spider-Man'],'鋼鐵人：裝甲冒險':['Iron Man: Armored Adventures'],'漫威喪屍':['Marvel Zombies']
+'雷神索爾小隊':['Team Thor'],'雷神索爾小隊：第二集':['Team Thor: Part 2'],'弗雷德與巴尼遇見石頭人':['Fred and Barney Meet the Thing'],'漫威崛起：起源':['Marvel Rising: Initiation'],'魔多客':['M.O.D.O.K.'],'鋼鐵人與超棒朋友們':['Iron Man and His Awesome Friends'],'認識鋼鐵人與超棒朋友們':['Meet Iron Man and His Awesome Friends'],'金鋼狼與X戰警':['Wolverine and the X-Men'],'終極復仇者':['Ultimate Avengers'],'終極復仇者2':['Ultimate Avengers 2'],'無敵鋼鐵人':['The Invincible Iron Man'],'奇異博士：至尊法師':['Doctor Strange: The Sorcerer Supreme'],'浩克星球':['Planet Hulk'],'雷神索爾：阿斯嘉傳說':['Thor: Tales of Asgard'],'復仇者：世上最強英雄':['The Avengers: Earth’s Mightiest Heroes'],'華麗蜘蛛人':['The Spectacular Spider-Man'],'鋼鐵人：裝甲冒險':['Iron Man: Armored Adventures'],'漫威喪屍':['Marvel Zombies'],'鋼鐵人：裝甲冒險':['Iron Man: Armored Adventures'],'漫威喪屍':['Marvel Zombies'],
+'金鋼狼：武士之戰':['The Wolverine'],
+'黑寡婦':['Black Widow'],
+'殺手猴':['Hit-Monkey'],
+'神盾顧問':['The Consultant'],
+'前往雷神之鎚途中發生的趣事':['A Funny Thing Happened on the Way to Thor\'s Hammer'],
+'第47號物品':['Item 47'],
+'向王者致敬':['All Hail the King'],
+'達瑞爾小隊':['Team Darryl'],
+'死侍短片：沒有好事':['No Good Deed'],
+'浩克對決':['Hulk Vs.'],
+'浩克：怪物出沒之地':['Hulk: Where Monsters Dwell'],
+'新復仇者：明日英雄':['Next Avengers: Heroes of Tomorrow'],
+'鋼鐵人：科技狂潮':['Iron Man: Rise of Technovore'],
+'鋼鐵人與浩克：聯合戰記':['Iron Man & Hulk: Heroes United'],
+'鋼鐵人與美國隊長：聯合戰記':['Iron Man & Captain America: Heroes United'],
+'漫威崛起：秘密勇士':['Marvel Rising: Secret Warriors'],
+'德古拉：地獄之王':['Dracula: Sovereign of the Damned'],
+'蜘蛛人與他的神奇朋友':['Spidey and His Amazing Friends'],
+'月亮女孩與惡魔恐龍':['Moon Girl and Devil Dinosaur'],
+'變種 X（Mutant X）':['Mutant X'],
+'刀鋒戰士（Blade: The Series）':['Blade: The Series']
 };
+
 function titleAliases(title){const direct=TITLE_ALIASES[title]||[];return [...new Set([title,...direct])];}
 
 function posterTitleVariants(title){
