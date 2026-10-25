@@ -473,7 +473,7 @@ TLD.forEach((g,k)=>{
 function startPosterLoader(){
   const apiKey = TMDB_API_KEY.trim();
   if (!apiKey || apiKey.includes('請填入')) { console.warn('TMDB API key 未設定'); return; }
-  const CACHE_KEY = 'mcu-tmdb-posters-v10';
+  const CACHE_KEY = 'mcu-tmdb-posters-v11';
   let cache = {};
   try { cache = JSON.parse(localStorage.getItem(CACHE_KEY) || '{}') || {}; } catch(e) {}
   const itemsById = Object.fromEntries(Object.keys(byId).map(id => [id, byId[id][0]]));
@@ -484,7 +484,7 @@ function startPosterLoader(){
   const overrideIds = {
     '制裁者': {type:'tv',id:67178},
     '制裁者 第2季': {type:'tv',id:67178,season:2},
-    '制裁者：最後一擊': {type:'movie',id:1657196},
+    '制裁者：最後一擊': {type:'movie',id:1439930},
     '漫威未來復仇者': {type:'tv',id:91278},
     '蜘蛛人：新宇宙': {type:'movie',id:324857},
     '蜘蛛人：穿越新宇宙': {type:'movie',id:569094},
