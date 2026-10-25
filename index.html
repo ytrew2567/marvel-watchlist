@@ -293,7 +293,7 @@ TLD.forEach((g,k)=>{
 function startPosterLoader(){
   const apiKey = TMDB_API_KEY.trim();
   if (!apiKey || apiKey.includes('請填入')) { console.warn('TMDB API key 未設定'); return; }
-  const CACHE_KEY = 'mcu-tmdb-posters-v11';
+  const CACHE_KEY = 'mcu-tmdb-posters-v12';
   let cache = {};
   try { cache = JSON.parse(localStorage.getItem(CACHE_KEY) || '{}') || {}; } catch(e) {}
   const itemsById = Object.fromEntries(Object.keys(byId).map(id => [id, byId[id][0]]));
