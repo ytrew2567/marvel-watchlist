@@ -302,6 +302,8 @@ function startPosterLoader(){
   let lastRequestAt = 0;
   const headers = apiKey.includes('.') ? {Authorization: 'Bearer ' + apiKey} : {};
   const overrideIds = {
+    '刀鋒戰士': {type:'movie',id:36647},
+    'X戰警': {type:'movie',id:36657},
     '制裁者': {type:'tv',id:67178},
     '制裁者 第2季': {type:'tv',id:67178,season:2},
     '制裁者：最後一擊': {type:'movie',id:1439930},
