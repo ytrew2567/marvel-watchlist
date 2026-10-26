@@ -769,20 +769,33 @@ function posterTitleVariants(title){
 
 function normTitle(s){return String(s).normalize('NFKC').toLocaleLowerCase().replace(/[\s　・·:：,，.。’'!?！？()（）\[\]【】&＋+\-]/g,'')}
 
+function diffParts(a,b){
+  // 算 a 到 b 之間差幾年幾月幾日幾時幾分幾秒（a 要比 b 早）
+  let y=b.getFullYear()-a.getFullYear(),mo=b.getMonth()-a.getMonth(),d=b.getDate()-a.getDate();
+  let h=b.getHours()-a.getHours(),mi=b.getMinutes()-a.getMinutes(),s=b.getSeconds()-a.getSeconds();
+  if(s<0){s+=60;mi--}
+  if(mi<0){mi+=60;h--}
+  if(h<0){h+=24;d--}
+  if(d<0){d+=new Date(b.getFullYear(),b.getMonth(),0).getDate();mo--}
+  if(mo<0){mo+=12;y--}
+  return {y,mo,d,h,mi,s};
+}
+
 function updateCountdown(){
   const el=document.getElementById('cd');if(!el)return;
-  const target=new Date('2026-12-18T00:00:00');
-  const today=new Date();today.setHours(0,0,0,0);
-  const days=Math.round((target-today)/86400000);
+  const now=new Date(),target=new Date('2026-12-18T00:00:00');
   const left=[...MUST].map(t=>MAP[t]&&MAP[t].id).filter(Boolean).filter(i=>!st[i]).length;
-  if(days>0){
-    el.innerHTML='距離《末日之戰》上映還有 <b>'+days+'</b> 天'+(left?'，還有 <b>'+left+'</b> 部必看沒看':'，必看作品都看完了 🎉');
-  }else if(days===0){
-    el.textContent='《末日之戰》今天上映！';
-  }else{
-    el.textContent='《末日之戰》已經上映了';
+  if(now>=target){
+    el.textContent=now.toDateString()===target.toDateString()?'《末日之戰》今天上映！':'《末日之戰》已經上映了';
+    return;
   }
+  const p=diffParts(now,target),z=n=>String(n).padStart(2,'0');
+  el.innerHTML='距離《末日之戰》上映還有<br>'
+    +'<b>'+p.y+'</b> 年 <b>'+p.mo+'</b> 月 <b>'+p.d+'</b> 日 '
+    +'<b>'+z(p.h)+'</b> 時 <b>'+z(p.mi)+'</b> 分 <b>'+z(p.s)+'</b> 秒'
+    +(left?'<br>還有 <b>'+left+'</b> 部必看沒看':'<br>必看作品都看完了 🎉');
 }
+
 
 function refresh(){
 
@@ -861,6 +874,8 @@ function refresh(){
   const p=b?Math.round(a/b*100):0;
 
   $('pct').textContent=p+'%';$('cnt').textContent='已看 '+a+' / '+b+' 部';$('fill').style.width=p+'%';
+  
+  updateCountdown();
 
 }
 
@@ -973,6 +988,8 @@ else if(!configured)setAuthMessage('請在程式碼填入 Supabase Project URL �
 else setAuthMessage('Supabase 程式庫載入失敗，請確認網路連線');
 
 renderAuth();
+
+setInterval(updateCountdown,1000);
 
 startPosterLoader();
 
