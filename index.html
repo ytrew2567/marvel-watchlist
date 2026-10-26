@@ -361,19 +361,20 @@ function startPosterLoader(){
     const sorted=[...(posters||[])].sort((a,b)=>(b.vote_average||0)-(a.vote_average||0));
     return (sorted.find(x=>x.iso_639_1==='zh')||sorted.find(x=>x.iso_639_1==='en')||sorted.find(x=>x.iso_639_1===null)||sorted[0])?.file_path||'';
   }
-  async function resolvePoster(item){
+    const REF_KEY='mcu-tmdb-refs-v1';
+  let refs={};
+  try{refs=JSON.parse(localStorage.getItem(REF_KEY)||'{}')||{}}catch(e){}
+  const saveRefs=()=>{try{localStorage.setItem(REF_KEY,JSON.stringify(refs))}catch(e){}};
+
+  async function resolveRef(item){
     const [year,title,category]=item.p;
     const seasonInfo=parseSeasonTitle(title);
     const base=seasonInfo?.queryTitle||title;
     const override=overrideIds[title];
-    if(override){
-      const path=await pickPoster(override.type,override.id,override.season??seasonInfo?.number);
-      if(path)return 'https://image.tmdb.org/t/p/w185'+path;
-    }
+    if(override)return {type:override.type,id:override.id,season:override.season??seasonInfo?.number};
     const aliases=posterTitleVariants(base);
     const isAnimation=category==='A';
-    // A 同時用於動畫電影與動畫影集；不要只看「動畫長片」區塊，蜘蛛人新宇宙系列也在電影區塊。
-    const animatedMovieTitles = new Set([
+    const animatedMovieTitles=new Set([
       ...(D.find(group=>group[0]==='動畫長片與直接發行影片')?.[1]||[]).map(r=>r.split('|')[1]),
       '蜘蛛人：新宇宙','蜘蛛人：穿越新宇宙','蜘蛛人：超越新宇宙（6月18日，暫定）'
     ]);
@@ -399,11 +400,68 @@ function startPosterLoader(){
       const score=match+(resultYear===Number(year)?7:0)-Math.min(delta,10)+(result.poster_path?2:0);
       if(score>bestScore){best=result;bestScore=score;}
     }
-    if(!best){console.warn('TMDB 找不到匹配作品：',title,'搜尋名稱：',aliases);return '';}
-    const path=await pickPoster(desiredType,best.id,seasonInfo?.number);
-    if(!path)console.warn('TMDB 已找到作品，但沒有可用海報：',title,desiredType,best.id);
+    if(!best){console.warn('TMDB 找不到匹配作品：',title,'搜尋名稱：',aliases);return null;}
+    return {type:desiredType,id:best.id,season:seasonInfo?.number};
+  }
+
+  async function resolvePoster(item){
+    const ref=await resolveRef(item);
+    if(!ref)return '';
+    refs[item.id]=ref;saveRefs();
+    const path=await pickPoster(ref.type,ref.id,ref.season);
+    if(!path)console.warn('TMDB 已找到作品，但沒有可用海報：',item.p[1],ref.type,ref.id);
     return path?'https://image.tmdb.org/t/p/w185'+path:'';
   }
+
+  // ===== 點海報看大圖、簡介、演員 =====
+  const modal=document.createElement('div');
+  modal.id='info';modal.hidden=true;
+  modal.innerHTML='<div class="box"><button class="x" type="button" aria-label="關閉">✕</button><div class="body"></div></div>';
+  document.body.appendChild(modal);
+  const body=modal.querySelector('.body');
+  let openId=null;
+  const closeInfo=()=>{modal.hidden=true;openId=null};
+  modal.addEventListener('click',e=>{if(e.target===modal||e.target.classList.contains('x'))closeInfo()});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeInfo()});
+  const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  async function showInfo(id,src){
+    const item=itemsById[id];if(!item)return;
+    openId=id;
+    const head='<img src="'+esc(src.replace('/w185/','/w500/'))+'" alt=""><h2>'+esc(item.p[1])+'</h2><p class="cast">'+esc(item.p[0])+'</p>';
+    body.innerHTML=head+'<p>載入中…</p>';modal.hidden=false;
+    try{
+      let ref=refs[id];
+      if(!ref){ref=await resolveRef(item);if(ref){refs[id]=ref;saveRefs();}}
+      if(openId!==id)return;
+      if(!ref){body.innerHTML=head+'<p>找不到這部作品的資料</p>';return}
+      const detail=await endpoint(ref.type+'/'+ref.id,{language:'zh-TW',append_to_response:'credits'});
+      let overview=detail.overview||'',credits=detail.credits;
+      if(ref.type==='tv'&&Number.isInteger(ref.season)){
+        try{
+          const s=await endpoint('tv/'+ref.id+'/season/'+ref.season,{language:'zh-TW',append_to_response:'credits'});
+          if(s.overview)overview=s.overview;
+          if(s.credits&&s.credits.cast&&s.credits.cast.length)credits=s.credits;
+        }catch(e){}
+      }
+      if(openId!==id)return;
+      const cast=((credits&&credits.cast)||[]).slice(0,8).map(c=>esc(c.name)+(c.character?'（飾 '+esc(c.character)+'）':'')).join('、');
+      body.innerHTML=head+'<p>'+(overview?esc(overview):'目前沒有中文簡介')+'</p>'+(cast?'<p class="cast"><b>演員：</b>'+cast+'</p>':'');
+    }catch(e){
+      if(openId===id)body.innerHTML=head+'<p>資料載入失敗，請稍後再試</p>';
+      console.error('TMDB 簡介載入失敗：',item.p[1],e);
+    }
+  }
+
+  // 點海報：開預覽，同時不要勾選（preventDefault 會擋掉「點標籤就勾選」的動作）
+  document.addEventListener('click',e=>{
+    const img=e.target;
+    if(!(img instanceof HTMLImageElement)||!img.classList.contains('poster')||!img.getAttribute('src'))return;
+    e.preventDefault();e.stopPropagation();
+    showInfo(img.dataset.posterId,img.src);
+  },true);
+
+
   let busy=false;
   async function run(){
     if(busy)return;busy=true;
