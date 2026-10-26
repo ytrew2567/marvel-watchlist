@@ -123,5 +123,8 @@ body.mu .it:not(.must){display:none}
 #info p{margin:8px 0;font-size:14px;line-height:1.6}
 #info .cast{color:var(--mut);font-size:13px}
 
+.cd{background:var(--card);border:1px solid var(--bd);border-left:3px solid var(--ac);border-radius:10px;padding:10px 14px;margin:0 0 12px;font-size:14px}
+.cd b{color:var(--ac);font-size:20px}
+.cd:empty{display:none}
 
 
