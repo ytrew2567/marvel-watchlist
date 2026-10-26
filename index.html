@@ -121,6 +121,8 @@
 
 </div>
 
+<button id="backToTop" type="button" aria-label="回到頂端" hidden>↑ 回到頂端</button>
+
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -993,6 +995,17 @@ renderAuth();
 setInterval(updateCountdown,1000);
 
 startPosterLoader();
+
+
+const backToTop = document.getElementById('backToTop');
+
+window.addEventListener('scroll', () => {
+  backToTop.hidden = window.scrollY < 300;
+});
+
+backToTop.addEventListener('click', () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
 
 </script>
 
