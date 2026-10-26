@@ -786,7 +786,8 @@ function updateCountdown(){
   const now=new Date(),target=new Date('2026-12-18T00:00:00');
   const left=[...MUST].map(t=>MAP[t]&&MAP[t].id).filter(Boolean).filter(i=>!st[i]).length;
   if(now>=target){
-    el.textContent=now.toDateString()===target.toDateString()?'《末日之戰》今天上映！':'《末日之戰》已經上映了';
+    el.textContent=now.toDateString()===target.toDateString()?'《末日之戰》今天上映！🎉':'《末日之戰》已上映 🎉';
+
     return;
   }
   const p=diffParts(now,target),z=n=>String(n).padStart(2,'0');
