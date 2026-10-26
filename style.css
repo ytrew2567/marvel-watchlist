@@ -131,3 +131,14 @@ body.mu .it:not(.must){display:none}
 
 
 .cd{font-variant-numeric:tabular-nums}
+
+#backToTop {
+  position: fixed;
+  right: 18px;
+  bottom: 20px;
+  z-index: 20;
+}
+
+#backToTop[hidden] {
+  display: none;
+}
