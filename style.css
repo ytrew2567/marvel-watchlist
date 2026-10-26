@@ -107,6 +107,8 @@ body.mu .it:not(.must){display:none}
 
 .auth{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:12px 0}
 
+.auth[hidden]{display:none}
+
 .auth input{flex:1;min-width:190px;padding:9px 10px;border:1px solid var(--bd);border-radius:7px;background:var(--card);color:var(--fg);font:inherit;font-size:13px}
 
 .auth button{padding:8px 11px}
@@ -129,5 +131,3 @@ body.mu .it:not(.must){display:none}
 
 
 .cd{font-variant-numeric:tabular-nums}
-
-
