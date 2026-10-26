@@ -128,3 +128,6 @@ body.mu .it:not(.must){display:none}
 .cd:empty{display:none}
 
 
+.cd{font-variant-numeric:tabular-nums}
+
+
