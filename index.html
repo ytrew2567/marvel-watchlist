@@ -879,6 +879,8 @@ function refresh(){
 
   }
 
+  if(mu)targetIems=targetItems.filter(x=>x.l.classList.contains('must'));
+  
   const b=targetItems.length;
 
   const a=targetItems.filter(x=>st[x.id]).length;
