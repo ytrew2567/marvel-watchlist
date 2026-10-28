@@ -301,27 +301,147 @@ function togglePanelVisibility(panelId) {
   if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
 }
 
+// 🚀 1. 新增：與舊紀錄相容之自動遷移機制（在網頁初始化時自動執行一次）
+function migrateOldData() {
+  let migrated = false;
+  D.forEach((block, bIdx) => {
+    block[1].forEach((itemStr, iIdx) => {
+      const id = bIdx + '-' + iIdx;
+      const parts = itemStr.split('|');
+      const name = parts[1];
+      const typeCode = parts[2];
+      const isShow = ['D','N','B'].includes(typeCode) || name.includes('季') || name.includes('影集');
+      
+      if (isShow && st[id] === 1 && !epData[id]) {
+        const total = EPISODE_COUNTS[name] || 8;
+        epData[id] = { episodes: {}, dates: {}, notes: {} };
+        for (let e = 1; e <= total; e++) {
+          epData[id].episodes[e] = true;
+          epData[id].dates[e] = new Date().toISOString().split('T')[0];
+          epData[id].notes[e] = "";
+        }
+        migrated = true;
+      }
+    });
+  });
+  if (migrated) localStorage.setItem('mcu-episodes-v1', JSON.stringify(epData));
+}
+
+// 🚀 2. 新增：生成影集逐集追蹤子面板的工具函式
+function renderEpisodePanelHtml(id, name) {
+  const total = EPISODE_COUNTS[name] || 8;
+  if (!epData[id]) epData[id] = { episodes: {}, dates: {}, notes: {} };
+  
+  let rowsHtml = "";
+  for (let e = 1; e <= total; e++) {
+    const isChecked = epData[id].episodes[e] ? 'checked' : '';
+    const dVal = epData[id].dates[e] || '';
+    const nVal = epData[id].notes[e] || '';
+    
+    rowsHtml += `
+      <div class="ep-row" style="display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid var(--bd);">
+        <input type="checkbox" ${isChecked} onclick="window.toggleSingleEpisode('${id}', ${e}, '${name}')">
+        <span style="flex:1; font-size:13px; color:var(--fg);">第 ${e} 集</span>
+        <input type="date" class="ep-date" style="font-size:12px; padding:3px;" value="${dVal}" onchange="window.updateEpDate('${id}', ${e}, this.value)">
+        <input type="text" class="ep-note" style="font-size:12px; padding:3px;" placeholder="增加備註..." value="${nVal}" onchange="window.updateEpNote('${id}', ${e}, this.value)">
+      </div>`;
+  }
+  
+  return `
+    <div class="ep-list-container" id="ep-panel-${id}" style="display:none; width:100%; background:var(--bg); padding:10px 14px;">
+      <div class="season-stat" style="display:flex; justify-content:space-between; align-items:center; font-size:12px; margin-bottom:8px; color:var(--mut);">
+        <span>單集進度紀錄</span>
+        <div class="ep-batch-btns">
+          <button type="button" style="padding:2px 6px; font-size:11px;" onclick="window.batchSeasonAction('${id}', true, ${total}, '${name}')">整季已看</button>
+          <button type="button" style="padding:2px 6px; font-size:11px;" onclick="window.batchSeasonAction('${id}', false, ${total}, '${name}')">整季取消</button>
+        </div>
+      </div>
+      ${rowsHtml}
+    </div>`;
+}
+
+// 🚀 3. 新增：全域單集連動控制方法
+window.toggleSingleEpisode = function(id, eNum, name) {
+  if (!epData[id]) epData[id] = { episodes: {}, dates: {}, notes: {} };
+  const state = !!epData[id].episodes[eNum];
+  
+  if (!state) {
+    epData[id].episodes[eNum] = true;
+    epData[id].dates[eNum] = new Date().toISOString().split('T')[0];
+  } else {
+    if (confirm('確定要取消勾選此集嗎？這不會刪除您已寫的備註。')) {
+      epData[id].episodes[eNum] = false;
+    }
+  }
+  localStorage.setItem('mcu-episodes-v1', JSON.stringify(epData));
+  syncSeasonStatus(id, name);
+  refresh();
+  document.getElementById('ep-panel-' + id).style.display = 'block';
+};
+
+window.updateEpDate = function(id, eNum, val) {
+  if (!epData[id]) epData[id] = { episodes: {}, dates: {}, notes: {} };
+  epData[id].dates[eNum] = val;
+  localStorage.setItem('mcu-episodes-v1', JSON.stringify(epData));
+};
+
+window.updateEpNote = function(id, eNum, val) {
+  if (!epData[id]) epData[id] = { episodes: {}, dates: {}, notes: {} };
+  epData[id].notes[eNum] = val;
+  localStorage.setItem('mcu-episodes-v1', JSON.stringify(epData));
+};
+
+window.batchSeasonAction = function(id, isWatch, total, name) {
+  const text = isWatch ? '全部標記為已看' : '全部取消觀看';
+  if (!confirm(`確定要將《${name}》執行 [${text}] 操作嗎？`)) return;
+  if (!epData[id]) epData[id] = { episodes: {}, dates: {}, notes: {} };
+  
+  const today = new Date().toISOString().split('T')[0];
+  for (let e = 1; e <= total; e++) {
+    epData[id].episodes[e] = isWatch;
+    if (isWatch && !epData[id].dates[e]) epData[id].dates[e] = today;
+  }
+  localStorage.setItem('mcu-episodes-v1', JSON.stringify(epData));
+  syncSeasonStatus(id, name);
+  refresh();
+  document.getElementById('ep-panel-' + id).style.display = 'block';
+};
+
+function syncSeasonStatus(id, name) {
+  const total = EPISODE_COUNTS[name] || 8;
+  let count = 0;
+  for (let e = 1; e <= total; e++) { if (epData[id]?.episodes[e]) count++; }
+  if (count === total) { st[id] = 1; } else { delete st[id]; }
+  try { localStorage.setItem(K, JSON.stringify(st)); } catch(e) {}
+}
+
+function togglePanelVisibility(panelId) {
+  const el = document.getElementById(panelId);
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+// 🚀 4. 回復與升級：修正後的完美防錯 mk(p, id) 卡片建立函式
 function mk(p,id){
   const lk=p[3]&&now<new Date(p[3]),m=MUST.has(p[1]);
   const isMovie = !(['D','N','B'].includes(p[2]) || p[1].includes('季') || p[1].includes('影集'));
   
-  // 建立大外層包裹器
+  // 建立外層包裹器，確保細部選單與作品文字包在一起
   const wrapper = document.createElement('div');
   wrapper.className = 'item-wrapper';
   wrapper.style.width = '100%';
   
   const l=document.createElement('label');l.className='it'+(lk?' lock':'')+(m?' must':'');
   
-  // 影集顯示特別追蹤文字
+  // 影集顯示即時更新的單集追蹤計數文字
   let showTrackText = "";
   if (!isMovie) {
     const total = EPISODE_COUNTS[p[1]] || 8;
     let done = 0;
     for(let e=1; e<=total; e++) { if(epData[id]?.episodes[e]) done++; }
-    showTrackText = `<small style="color:var(--mut); margin-left:6px;">[逐集追蹤: ${done}/${total}]</small>`;
+    showTrackText = `<small style="color:var(--mut); margin-left:6px;">[追蹤中: ${done}/${total}集]</small>`;
   }
 
-  l.innerHTML='<input type="checkbox"'+(lk?' disabled':'')+' '+(isMovie?'':'style="display:none;"')+'><img class="poster" data-poster-id="'+id+'" loading="lazy" decoding="async" alt=""><span class="y">'+p[0]+'</span><span class="t">'+p[1]+showTrackText+'</span>'+(m?'<b class="mk">必看</b>':'')+'<em>'+(lk?'未上映':TG[p[2]])+'</em>';
+  l.innerHTML='<input type="checkbox"'+(lk?' disabled':'')+'><img class="poster" data-poster-id="'+id+'" loading="lazy" decoding="async" alt=""><span class="y">'+p[0]+'</span><span class="t">'+p[1]+showTrackText+'</span>'+(m?'<b class="mk">必看</b>':'')+'<em>'+(lk?'未上映':TG[p[2]])+'</em>';
   
   const posterImg = l.querySelector('.poster');
   posterImg.addEventListener('error', () => {
@@ -335,8 +455,11 @@ function mk(p,id){
       c.checked=!!st[id];
       c.addEventListener('change',()=>{c.checked?st[id]=1:delete st[id];save();refresh()});
     } else {
-      // 影集點擊整行直接切換展開/收合
-      l.querySelector('.t').addEventListener('click', (e) => {
+      // 影集隱藏原本最前方的核取方塊，並改為點擊整行片名直接展開/收合逐集面板
+      c.style.display = 'none';
+      l.addEventListener('click', (e) => {
+        // 如果使用者是在點擊海報看預覽，則不觸發面板展開
+        if (e.target.classList.contains('poster')) return;
         e.preventDefault(); e.stopPropagation();
         togglePanelVisibility('ep-panel-' + id);
       });
@@ -350,44 +473,14 @@ function mk(p,id){
     wrapper.appendChild(panelContainer.firstElementChild);
   }
 
-  (byId[id]=byId[id]||[]).push({id,l,c,lk,p});
+  (byId[id]=byId[id]||[]).push({id,l:wrapper,c,lk,p});
   return {id,l:wrapper,c,lk,p};
 }
 
+// 在系統初始化中加入資料自動遷移
+migrateOldData();
 
-D.forEach((s,i)=>{
 
-  const d=document.createElement('details');d.open=i===0||i===3;
-
-  const sm=document.createElement('summary');
-
-  sm.innerHTML='<span>'+s[0]+(s[2]?'<span class="opt">非必需</span>':'')+'</span><span class="n"></span><button class="all">全選</button>';
-
-  d.appendChild(sm);
-
-  const items=[];
-
-  s[1].forEach((r,j)=>{
-
-    const p=r.split('|'),id=i+'-'+j,o=mk(p,id);MAP[p[1]]=o;
-
-if(s[0].startsWith('電影 ')||s[0]==='動畫長片與直接發行影片'||(s[0]==='尚未上映（已公布）'&&p[2]!=='D'))releaseMovieIds.add(id)
-
-    d.appendChild(o.l);items.push(o);
-
-  });
-
-  sm.querySelector('.all').addEventListener('click',e=>{
-
-    e.preventDefault();e.stopPropagation();
-
-    const av=items.filter(x=>!x.lk&&!x.l.hidden),every=av.length>0&&av.every(x=>st[x.id]);
-
-    av.forEach(x=>{every?delete st[x.id]:st[x.id]=1;x.c.checked=!every});
-
-    save();refresh();
-
-  });
 
   root.appendChild(d);secs.push({sm,items,o:!!s[2]});
 
