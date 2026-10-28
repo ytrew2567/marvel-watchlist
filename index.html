@@ -130,7 +130,6 @@
 <script>
 
 const TG={M:'MCU',F:'福斯',S:'蜘蛛人',O:'其他',A:'動畫',E:'早期真人',P:'短片',N:'Netflix',B:'ABC等',D:'Disney+'};
-
 const D=[
 ['電影 1986–2010',['1986|天降神兵|O','1998|刀鋒戰士|O','2000|X戰警|F','2002|刀鋒戰士2|O','2002|蜘蛛人|S','2003|夜魔俠|O','2003|X戰警2|F','2003|綠巨人浩克|O','2004|神鬼制裁|O','2004|蜘蛛人2|S','2004|刀鋒戰士3|O','2005|幻影殺手|O','2005|驚奇4超人|F','2006|X戰警：最後戰役|F','2007|惡靈戰警|O','2007|蜘蛛人3|S','2007|驚奇4超人：銀色衝浪手現身|F','2008|鋼鐵人|M','2008|無敵浩克|M','2008|神鬼制裁2：就地正法|O','2009|X戰警：金鋼狼|F','2010|鋼鐵人2|M']],
 ['電影 2011–2019',['2011|雷神索爾|M','2011|X戰警：第一戰|F','2011|美國隊長|M','2012|惡靈戰警：復仇時刻|O','2012|復仇者聯盟|M','2012|蜘蛛人驚奇再起|S','2013|鋼鐵人3|M','2013|金鋼狼：武士之戰|F','2013|雷神索爾2：黑暗世界|M','2014|美國隊長2：酷寒戰士|M','2014|蜘蛛人驚奇再起2：電光之戰|S','2014|X戰警：未來昔日|F','2014|星際異攻隊|M','2014|大英雄天團|A','2015|復仇者聯盟：奧創紀元|M','2015|蟻人|M','2015|驚奇4超人（重啟版）|O','2016|惡棍英雄：死侍|F','2016|美國隊長3：英雄內戰|M','2016|X戰警：天啟|F','2016|奇異博士|M','2017|羅根|F','2017|星際異攻隊2|M','2017|蜘蛛人：返校日|M','2017|雷神索爾3：諸神黃昏|M','2018|黑豹|M','2018|復仇者聯盟：無限之戰|M','2018|死侍2|F','2018|蟻人與黃蜂女|M','2018|猛毒|S','2018|蜘蛛人：新宇宙|A','2019|驚奇隊長|M','2019|復仇者聯盟：終局之戰|M','2019|X戰警：黑鳳凰|F','2019|蜘蛛人：離家日|M']],
@@ -138,20 +137,19 @@ const D=[
 ['尚未上映（已公布）',['2026|復仇者聯盟：末日之戰（12月18日）|M|2026-12-18','2027|蜘蛛人：你的友好鄰居 第2季（1月13日）|D|2027-01-13','2027|夜魔俠：重生 第3季（最終季，2027年）|D|2027-12-31','2027|蜘蛛人：超越新宇宙（6月18日，暫定）|A|2027-06-18','2027|漫威喪屍特別篇：冬兵（暫譯，萬聖節）|D|2027-10-31','2027|復仇者聯盟：秘密戰爭（12月17日）|M|2027-12-17','2027|X戰警 ’97 第3季（日期待公布）|D|2027-12-31','2028|X戰警（暫譯，5月5日）|M|2028-05-05','2028|惡靈戰警（7月28日）|M|2028-07-28','2028|黑豹3（12月15日）|M|2028-12-15','2028|十二宮間諜影集（暫譯，預計2028）|D|2028-12-31','2027|漫威復仇者聯盟：最強好友（暫譯，2027年）|D|2027-12-31','2028|漫威喪屍特別篇：孔蘇之拳（暫譯，萬聖節）|D|2028-10-31','2029|漫威喪屍特別篇：最後的守護者（暫譯，2029年）|D|2029-12-31']],
 ['Disney+ 影集 2021–2023',['2021|漫威影業：傳奇（精華回顧）|D','2021|汪達幻視|D','2021|獵鷹與酷寒戰士|D','2021|洛基 第1季|D','2021|無限可能：假如…？第1季|D','2021|鷹眼|D','2022|月光騎士|D','2022|驚奇少女|D','2022|我是格魯特 第1季|D','2022|律師女浩克|D','2022|暗夜狼人（特別篇）|D','2022|星際異攻隊：聖誕特別篇|D','2023|秘密入侵|D','2023|我是格魯特 第2季|D','2023|洛基 第2季|D','2023|無限可能：假如…？第2季|D']],
 ['Disney+ 影集 2024–2026',['2024|回聲女|D','2024|X戰警 ’97|D','2024|阿嘉莎：無所不在|D','2024|無限可能：假如…？第3季|D','2025|蜘蛛人：你的友好鄰居|D','2025|夜魔俠：重生 第1季|D','2025|鋼鐵心|D','2025|瓦干達之眼|D','2025|漫威喪屍|D','2026|神力人|D|2026-01-27','2026|夜魔俠：重生 第2季|D','2026|制裁者：最後一擊|D|2026-05-12','2026|X戰警 ’97 第2季|D','2026|幻視任務|D|2026-10-14']],
-['Netflix 街頭英雄（推出順序）',['2015|夜魔俠 第1季|N','2015|潔西卡・瓊斯 第1季|N','2016|夜魔俠 第2季|N','2016|漫威：盧克・凱奇|N','2017|鐵拳俠 第1季|N','2017|捍衛者聯盟|N','2017|制裁者|N','2018|潔西卡・瓊斯 第2季|N','2018|漫威：盧克・凱奇第2季|N','2018|鐵拳俠 第2季|N','2018|夜魔俠 第3季|N','2019|制裁者 第2季|N','2019|潔西卡・瓊斯 第3季|N']],
+['Netflix 街頭英雄（推出順序）',['2015|夜魔俠 第1季|N','2015|潔西卡・瓊斯 第1季|N','2016|夜魔俠 第2季|N','2016|漫威：盧克・凱奇|N','2017|鐵拳俠 第1季|N','2017|捍館者聯盟|N','2017|制裁者|N','2018|潔西卡・瓊斯 第2季|N','2018|漫威：盧克・凱奇第2季|N','2018|鐵拳俠 第2季|N','2018|夜魔俠 第3季|N','2019|制裁者 第2季|N','2019|潔西卡・瓊斯 第3季|N']],
 ['其他真人影集 2013–2026',['2013|神盾局特工 第1季|B','2015|卡特探員 第1季|B','2017|變種軍團 第1季|B','2017|異人族|B','2017|天賦異稟 第1季|B','2017|離家童盟 第1季|B','2018|斗篷與匕首 第1季|B','2020|地獄風暴|B','2026|蜘蛛人：黑色（暫譯）|B','2014|神盾局特工 第2季|B','2015|神盾局特工 第3季|B','2016|神盾局特工 第4季|B','2017|神盾局特工 第5季|B','2019|神盾局特工 第6季|B','2020|神盾局特工 第7季|B','2016|卡特探員 第2季|B','2018|變種軍團 第2季|B','2019|變種軍團 第3季|B','2018|天賦異稟 第2季|B','2018|離家童盟 第2季|B','2019|離家童盟 第3季|B','2019|斗篷與匕首 第2季|B','2016|神盾局特工：彈弓|B']],
 ['早期真人影集與電視電影 1974–2006',['1974|蜘蛛人小故事|E','1977|蜘蛛人（1977真人影集）|E','1977|無敵浩克（1977真人影集）|E','1978|日本版蜘蛛人（東映特攝）|E','2001|變種 X（Mutant X）|E','2006|刀鋒戰士（Blade: The Series）|E','1978|蜘蛛人大反擊（暫譯）|O','1978|奇異博士：1978年電視電影|O','1979|蜘蛛人：神龍的挑戰（暫譯）|O','1979|美國隊長：1979年電視電影|O','1979|美國隊長2：死期不遠（暫譯）|O','1988|無敵浩克歸來|O','1989|無敵浩克的審判|O','1989|制裁者：1989年電影|O','1990|無敵浩克之死|O','1990|美國隊長：1990年電影|O','1996|X世代（1996年電視電影）|O','1998|尼克・福瑞：神盾局特工（1998年電視電影）|O'],1],
 ['短片',['2011|神盾顧問|P','2011|前往雷神之鎚途中發生的趣事|P','2012|第47號物品|P','2013|卡特探員（短片）|P','2014|向王者致敬|P','2016|雷神索爾小隊|P','2017|雷神索爾小隊：第二集|P','2017|死侍短片：沒有好事|P','2018|達瑞爾小隊|P'],1],
 ['動畫長片與直接發行影片',['1980|德古拉：地獄之王|A','1981|科學怪人動畫電影|A','2006|終極復仇者|A','2006|終極復仇者2|A','2007|無敵鋼鐵人|A','2007|奇異博士：至尊法師|A','2008|新復仇者：明日英雄|A','2009|浩克對決|A','2010|浩克星球|A','2011|雷神索爾：阿斯嘉傳說|A','2013|鋼鐵人：科技狂潮|A','2013|鋼鐵人與浩克：聯合戰記|A','2014|復仇者聯盟機密：黑寡婦與制裁者|A','2014|鋼鐵人與美國隊長：聯合戰記|A','2016|浩克：怪物出沒之地|A','2018|漫威崛起：秘密勇士|A','2021|樂高漫威復仇者聯盟：見習洛基|A','2023|樂高漫威復仇者聯盟：紅色警戒|A','2024|樂高漫威復仇者聯盟：拆除任務|A','2019|漫威崛起：追逐幽靈（暫譯）|A','2019|漫威崛起：鋼鐵之心（暫譯）|A','2019|漫威崛起：樂團大戰（暫譯）|A','2019|漫威崛起：舒莉行動（暫譯）|A','2019|漫威崛起：玩火（暫譯）|A','2013|樂高漫威超級英雄：極限超載|A','2015|樂高漫威超級英雄：復仇者重新集結|A','2017|樂高漫威超級英雄：星際異攻隊 毀滅者的威脅|A','2018|樂高漫威超級英雄：黑豹 瓦干達危機|A','2019|樂高漫威蜘蛛人：毒液的麻煩|A','2020|樂高漫威復仇者聯盟：氣候難題|A','2022|樂高漫威復仇者聯盟：時空錯亂|A','1989|X戰警：凱蒂・普萊德的榮耀|A'
 ],1],
-['動畫影集 1966–2025',['1966|漫威超級英雄（The Marvel Super Heroes）|A','1967|驚奇4超人動畫版|A','1967|蜘蛛人（1967 動画版）|A','1978|新驚奇4超人|A','1979|蜘蛛女|A','1979|弗雷德與巴尼遇見石頭人|A','1981|蜘蛛人（1981 動畫版）|A','1981|蜘蛛人與神奇朋友|A','1982|浩克動畫版|A','1992|X戰警動畫影集|A','1993|鋼鐵人動畫影集|A','1994|驚奇4超人動畫影集|A','1994|蜘蛛人動畫影集|A','1996|無敵浩克動畫影集|A','1998|銀色衝浪手|A','1999|復仇者聯盟動畫版|A','1999|蜘蛛人：無限|A','2000|X戰警：進化|A','2003|蜘蛛人新動畫影集|A','2006|驚奇4超人：世上最偉大英雄|A','2008|華麗蜘蛛人|A','2009|鋼鐵人：裝甲冒險|A','2009|金鋼狼與X戰警|A','2009|超級英雄小隊|A','2010|復仇者：世上最強英雄|A','2010|漫威日系動畫：鋼鐵人|A','2011|漫威日系動畫：金鋼狼|A','2011|漫威日系動畫：X戰警|A','2011|漫威日系動畫：刀鋒戰士|A','2012|漫威終極蜘蛛人|A','2013|復仇者集結|A','2013|浩克與特工隊|A','2014|漫威磁碟戰記：復仇者聯盟|A','2015|星際異攻隊動畫影集|A','2017|漫威未來復仇者|A','2017|漫威蜘蛛人動畫影集|A','2017|大英雄天團動畫影集|A','2018|漫威崛起：起源|A','2021|魔多客|A','2021|殺手猴|A','2021|蜘蛛人與他的神奇朋友|A','2023|月亮女孩與惡魔恐龍|A','2025|鋼鐵人與超棒朋友們|A','2025|認識鋼鐵人與超棒朋友們|A'],1]
+['動畫影集 1966–2025',['1966|漫威超級英雄（The Marvel Super Heroes）|A','1967|驚奇4超人動畫版|A','1967|蜘蛛人（1967 動畫版）|A','1978|新驚奇4超人|A','1979|蜘蛛女|A','1979|弗雷德與巴尼遇見石頭人|A','1981|蜘蛛人（1981 動畫版）|A','1981|蜘蛛人與神奇朋友|A','1982|浩克動畫版|A','1992|X戰警動畫影集|A','1993|鋼鐵人動畫影集|A','1994|驚奇4超人動畫影集|A','1994|蜘蛛人動畫影集|A','1996|無敵浩克動畫影集|A','1998|銀色衝浪手|A','1999|復仇者聯盟動畫版|A','1999|蜘蛛人：無限|A','2000|X戰警：進化|A','2003|蜘蛛人新動畫影集|A','2006|驚奇4超人：世上最偉大英雄|A','2008|華麗蜘蛛人|A','2009|鋼鐵人：裝甲冒險|A','2009|金鋼狼與X戰警|A','2009|超級英雄小隊|A','2010|復仇者：世上最強英雄|A','2010|漫威日系動畫：鋼鐵人|A','2011|漫威日系動畫：金鋼狼|A','2011|漫威日系動畫：X戰警|A','2011|漫威日系動畫：刀鋒戰士|A','2012|漫威終極蜘蛛人|A','2013|復仇者集結|A','2013|浩克與特工隊|A','2014|漫威磁碟戰記：復仇者聯盟|A','2015|星際異攻隊動畫影集|A','2017|漫威未來復仇者|A','2017|漫威蜘蛛人動畫影集|A','2017|大英雄天團動畫影集|A','2018|漫威崛起：起源|A','2021|魔多客|A','2021|殺手猴|A','2021|蜘蛛人與他的神奇朋友|A','2023|月亮女孩與惡魔恐龍|A','2025|鋼鐵人與超棒朋友們|A','2025|認識鋼鐵人與超棒朋友們|A'],1]
 ];
 
 const K='mcu-checklist-v1';
 let st={};
 try{st=JSON.parse(localStorage.getItem(K)||'{}')||{}}catch(e){st={}}
 
-// 🚀 新增：穩定降級用預設集數表（第六章規格：確保沒有 TMDB 資料也能順暢運作）
 const EPISODE_COUNTS = {
   '神盾局特工 第1季': 22, '神盾局特工 第2季': 22, '神盾局特工 第3季': 22, '神盾局特工 第4季': 22, '神盾局特工 第5季': 22, '神盾局特工 第6季': 13, '神盾局特工 第7季': 13,
   '卡特探員 第1季': 8, '卡特探員 第2季': 10, '變種軍團 第1季': 8, '變種軍團 第2季': 11, '變種軍團 第3季': 8,
@@ -161,7 +159,6 @@ const EPISODE_COUNTS = {
   '回聲女': 5, 'X戰警 ’97': 10, '阿嘉莎：無所不在': 9, '夜魔俠：重生 第1季': 9
 };
 
-// 🚀 新增：逐集追蹤專屬本地硬碟儲存鍵值
 let epData = JSON.parse(localStorage.getItem('mcu-episodes-v1')) || {};
 
 let push=null;
@@ -171,18 +168,10 @@ function save(){
   if(push)push();
 }
 
-
-
-let push=null;
-
-function save(){try{localStorage.setItem(K,JSON.stringify(st))}catch(e){}if(push)push()}
-
 const now=new Date(),root=document.getElementById('list'),secs=[];
-
 const byId={},MAP={},ITEM={},releaseMovieIds=new Set(),MUST=new Set(['復仇者聯盟：終局之戰 加碼重映','復仇者聯盟：終局之戰','洛基 第1季',
-'洛基 第2季','奇異博士2：失控多重宇宙','蟻人與黃蜂女：量子狂熱','蜘蛛人：無家日','死侍與金鋼狼','雷霆特攻隊*','驚奇4超人：第一步','蜘蛛人：重生日','美國隊長','復仇者聯盟','復仇者聯盟：無限之戰','尚氣與十環傳奇','黑豹2：瓦干達萬歲','美國隊長：無畏新世界','瓦干達之眼','汪達幻視','獵鷹與酷寒戰士','X戰警','X戰警2','X戰警：第一戰']);
+'洛基 第2季','奇異博士2：失控多重宇宙','蟻人與黃蜂女：量子狂熱','蜘蛛人：無家日','死侍與金鋼狼','雷霆特攻隊*','驚奇4超人：第一步','蜘蛛人：重生日','美國隊長','復仇者聯盟','復仇者聯盟：慢之戰','尚氣與十環傳奇','黑豹2：瓦干達萬歲','美國隊長：無畏新世界','瓦干達之眼','汪達幻視','獵鷹與酷寒戰士','X戰警','X戰警2','X戰警：第一戰']);
 
-// 🚀 全新升級：整合舊紀錄相容與逐集控制的核心處理引擎
 function migrateOldData() {
   let migrated = false;
   D.forEach((block, bIdx) => {
@@ -208,126 +197,6 @@ function migrateOldData() {
   if (migrated) localStorage.setItem('mcu-episodes-v1', JSON.stringify(epData));
 }
 
-// 建立逐集子面板 HTML 的函式
-function renderEpisodePanelHtml(id, name) {
-  const total = EPISODE_COUNTS[name] || 8;
-  if (!epData[id]) epData[id] = { episodes: {}, dates: {}, notes: {} };
-  
-  let rowsHtml = "";
-  for (let e = 1; e <= total; e++) {
-    const isChecked = epData[id].episodes[e] ? 'checked' : '';
-    const dVal = epData[id].dates[e] || '';
-    const nVal = epData[id].notes[e] || '';
-    
-    rowsHtml += `
-      <div class="ep-row" style="display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid var(--bd);">
-        <input type="checkbox" ${isChecked} onclick="window.toggleSingleEpisode('${id}', ${e}, '${name}')">
-        <span style="flex:1; font-size:13px;">第 ${e} 集</span>
-        <input type="date" class="ep-date" value="${dVal}" onchange="window.updateEpDate('${id}', ${e}, this.value)">
-        <input type="text" class="ep-note" placeholder="增加備註..." value="${nVal}" onchange="window.updateEpNote('${id}', ${e}, this.value)">
-      </div>`;
-  }
-  
-  return `
-    <div class="ep-list-container" id="ep-panel-${id}" style="display:none; width:100%; background:var(--bg); padding:10px 14px;">
-      <div class="season-stat" style="display:flex; justify-content:space-between; align-items:center; font-size:12px; margin-bottom:8px;">
-        <span>單集進度追蹤紀錄</span>
-        <div class="ep-batch-btns">
-          <button type="button" onclick="window.batchSeasonAction('${id}', true, ${total}, '${name}')">整季已看</button>
-          <button type="button" onclick="window.batchSeasonAction('${id}', false, ${total}, '${name}')">整季取消</button>
-        </div>
-      </div>
-      ${rowsHtml}
-    </div>`;
-}
-
-// 掛載控制全域視窗全域控制方法
-window.toggleSingleEpisode = function(id, eNum, name) {
-  if (!epData[id]) epData[id] = { episodes: {}, dates: {}, notes: {} };
-  const state = !!epData[id].episodes[eNum];
-  
-  if (!state) {
-    epData[id].episodes[eNum] = true;
-    epData[id].dates[eNum] = new Date().toISOString().split('T')[0];
-  } else {
-    if (confirm('確定要取消勾選此集嗎？這不會刪除您已寫的備註。')) {
-      epData[id].episodes[eNum] = false;
-    }
-  }
-  localStorage.setItem('mcu-episodes-v1', JSON.stringify(epData));
-  syncSeasonStatus(id, name);
-  refresh();
-  document.getElementById('ep-panel-' + id).style.display = 'block';
-};
-
-window.updateEpDate = function(id, eNum, val) {
-  if (!epData[id]) epData[id] = { episodes: {}, dates: {}, notes: {} };
-  epData[id].dates[eNum] = val;
-  localStorage.setItem('mcu-episodes-v1', JSON.stringify(epData));
-};
-
-window.updateEpNote = function(id, eNum, val) {
-  if (!epData[id]) epData[id] = { episodes: {}, dates: {}, notes: {} };
-  epData[id].notes[eNum] = val;
-  localStorage.setItem('mcu-episodes-v1', JSON.stringify(epData));
-};
-
-window.batchSeasonAction = function(id, isWatch, total, name) {
-  const text = isWatch ? '全部標記為已看' : '全部取消觀看';
-  if (!confirm(`確定要將《${name}》執行 [${text}] 操作嗎？`)) return;
-  if (!epData[id]) epData[id] = { episodes: {}, dates: {}, notes: {} };
-  
-  const today = new Date().toISOString().split('T')[0];
-  for (let e = 1; e <= total; e++) {
-    epData[id].episodes[e] = isWatch;
-    if (isWatch && !epData[id].dates[e]) epData[id].dates[e] = today;
-  }
-  localStorage.setItem('mcu-episodes-v1', JSON.stringify(epData));
-  syncSeasonStatus(id, name);
-  refresh();
-  document.getElementById('ep-panel-' + id).style.display = 'block';
-};
-
-function syncSeasonStatus(id, name) {
-  const total = EPISODE_COUNTS[name] || 8;
-  let count = 0;
-  for (let e = 1; e <= total; e++) { if (epData[id]?.episodes[e]) count++; }
-  if (count === total) { st[id] = 1; } else { delete st[id]; }
-  try { localStorage.setItem(K, JSON.stringify(st)); } catch(e) {}
-}
-
-function togglePanelVisibility(panelId) {
-  const el = document.getElementById(panelId);
-  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
-}
-
-// 🚀 1. 新增：與舊紀錄相容之自動遷移機制（在網頁初始化時自動執行一次）
-function migrateOldData() {
-  let migrated = false;
-  D.forEach((block, bIdx) => {
-    block[1].forEach((itemStr, iIdx) => {
-      const id = bIdx + '-' + iIdx;
-      const parts = itemStr.split('|');
-      const name = parts[1];
-      const typeCode = parts[2];
-      const isShow = ['D','N','B'].includes(typeCode) || name.includes('季') || name.includes('影集');
-      
-      if (isShow && st[id] === 1 && !epData[id]) {
-        const total = EPISODE_COUNTS[name] || 8;
-        epData[id] = { episodes: {}, dates: {}, notes: {} };
-        for (let e = 1; e <= total; e++) {
-          epData[id].episodes[e] = true;
-          epData[id].dates[e] = new Date().toISOString().split('T')[0];
-          epData[id].notes[e] = "";
-        }
-        migrated = true;
-      }
-    });
-  });
-  if (migrated) localStorage.setItem('mcu-episodes-v1', JSON.stringify(epData));
-}
-
-// 🚀 2. 新增：生成影集逐集追蹤子面板的工具函式
 function renderEpisodePanelHtml(id, name) {
   const total = EPISODE_COUNTS[name] || 8;
   if (!epData[id]) epData[id] = { episodes: {}, dates: {}, notes: {} };
@@ -360,7 +229,6 @@ function renderEpisodePanelHtml(id, name) {
     </div>`;
 }
 
-// 🚀 3. 新增：全域單集連動控制方法
 window.toggleSingleEpisode = function(id, eNum, name) {
   if (!epData[id]) epData[id] = { episodes: {}, dates: {}, notes: {} };
   const state = !!epData[id].episodes[eNum];
@@ -376,379 +244,50 @@ window.toggleSingleEpisode = function(id, eNum, name) {
   localStorage.setItem('mcu-episodes-v1', JSON.stringify(epData));
   syncSeasonStatus(id, name);
   refresh();
-  document.getElementById('ep-panel-' + id).style.display = 'block';
+document.getElementById('ep-panel-' + id).style.display = 'block';
 };
-
 window.updateEpDate = function(id, eNum, val) {
-  if (!epData[id]) epData[id] = { episodes: {}, dates: {}, notes: {} };
-  epData[id].dates[eNum] = val;
-  localStorage.setItem('mcu-episodes-v1', JSON.stringify(epData));
+if (!epData[id]) epData[id] = { episodes: {}, dates: {}, notes: {} };
+epData[id].dates[eNum] = val;
+localStorage.setItem('mcu-episodes-v1', JSON.stringify(epData));
 };
-
 window.updateEpNote = function(id, eNum, val) {
-  if (!epData[id]) epData[id] = { episodes: {}, dates: {}, notes: {} };
-  epData[id].notes[eNum] = val;
-  localStorage.setItem('mcu-episodes-v1', JSON.stringify(epData));
+if (!epData[id]) epData[id] = { episodes: {}, dates: {}, notes: {} };
+epData[id].notes[eNum] = val;
+localStorage.setItem('mcu-episodes-v1', JSON.stringify(epData));
 };
-
 window.batchSeasonAction = function(id, isWatch, total, name) {
-  const text = isWatch ? '全部標記為已看' : '全部取消觀看';
-  if (!confirm(`確定要將《${name}》執行 [${text}] 操作嗎？`)) return;
-  if (!epData[id]) epData[id] = { episodes: {}, dates: {}, notes: {} };
-  
-  const today = new Date().toISOString().split('T')[0];
-  for (let e = 1; e <= total; e++) {
-    epData[id].episodes[e] = isWatch;
-    if (isWatch && !epData[id].dates[e]) epData[id].dates[e] = today;
-  }
-  localStorage.setItem('mcu-episodes-v1', JSON.stringify(epData));
-  syncSeasonStatus(id, name);
-  refresh();
-  document.getElementById('ep-panel-' + id).style.display = 'block';
+const text = isWatch ? '全部標記為已看' : '全部取消觀看';
+if (!confirm(確定要將《${name}》執行 [${text}] 操作嗎？)) return;
+if (!epData[id]) epData[id] = { episodes: {}, dates: {}, notes: {} };
+const today = new Date().toISOString().split('T')[0];
+for (let e = 1; e <= total; e++) {
+epData[id].episodes[e] = isWatch;
+if (isWatch && !epData[id].dates[e]) epData[id].dates[e] = today;
+}
+localStorage.setItem('mcu-episodes-v1', JSON.stringify(epData));
+syncSeasonStatus(id, name);
+refresh();
+document.getElementById('ep-panel-' + id).style.display = 'block';
 };
-
 function syncSeasonStatus(id, name) {
-  const total = EPISODE_COUNTS[name] || 8;
-  let count = 0;
-  for (let e = 1; e <= total; e++) { if (epData[id]?.episodes[e]) count++; }
-  if (count === total) { st[id] = 1; } else { delete st[id]; }
-  try { localStorage.setItem(K, JSON.stringify(st)); } catch(e) {}
+const total = EPISODE_COUNTS[name] || 8;
+let count = 0;
+for (let e = 1; e <= total; e++) { if (epData[id]?.episodes[e]) count++; }
+if (count === total) { st[id] = 1; } else { delete st[id]; }
+try { localStorage.setItem(K, JSON.stringify(st)); } catch(e) {}
 }
-
 function togglePanelVisibility(panelId) {
-  const el = document.getElementById(panelId);
-  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+const el = document.getElementById(panelId);
+if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
 }
-
-// 🚀 4. 回復與升級：修正後的完美防錯 mk(p, id) 卡片建立函式
 function mk(p,id){
-  const lk=p[3]&&now<new Date(p[3]),m=MUST.has(p[1]);
-  const isMovie = !(['D','N','B'].includes(p[2]) || p[1].includes('季') || p[1].includes('影集'));
-  
-  // 建立外層包裹器，確保細部選單與作品文字包在一起
-  const wrapper = document.createElement('div');
-  wrapper.className = 'item-wrapper';
-  wrapper.style.width = '100%';
-  
-  const l=document.createElement('label');l.className='it'+(lk?' lock':'')+(m?' must':'');
-  
-  // 影集顯示即時更新的單集追蹤計數文字
-  let showTrackText = "";
-  if (!isMovie) {
-    const total = EPISODE_COUNTS[p[1]] || 8;
-    let done = 0;
-    for(let e=1; e<=total; e++) { if(epData[id]?.episodes[e]) done++; }
-    showTrackText = `<small style="color:var(--mut); margin-left:6px;">[追蹤中: ${done}/${total}集]</small>`;
-  }
-
-  l.innerHTML='<input type="checkbox"'+(lk?' disabled':'')+'><img class="poster" data-poster-id="'+id+'" loading="lazy" decoding="async" alt=""><span class="y">'+p[0]+'</span><span class="t">'+p[1]+showTrackText+'</span>'+(m?'<b class="mk">必看</b>':'')+'<em>'+(lk?'未上映':TG[p[2]])+'</em>';
-  
-  const posterImg = l.querySelector('.poster');
-  posterImg.addEventListener('error', () => {
-    posterImg.removeAttribute('src');
-    posterImg.dataset.failed = 'true';
-  });
-  
-  const c=l.querySelector('input');
-  if(!lk){
-    if (isMovie) {
-      c.checked=!!st[id];
-      c.addEventListener('change',()=>{c.checked?st[id]=1:delete st[id];save();refresh()});
-    } else {
-      // 影集隱藏原本最前方的核取方塊，並改為點擊整行片名直接展開/收合逐集面板
-      c.style.display = 'none';
-      l.addEventListener('click', (e) => {
-        // 如果使用者是在點擊海報看預覽，則不觸發面板展開
-        if (e.target.classList.contains('poster')) return;
-        e.preventDefault(); e.stopPropagation();
-        togglePanelVisibility('ep-panel-' + id);
-      });
-    }
-  }
-  
-  wrapper.appendChild(l);
-  if (!isMovie) {
-    const panelContainer = document.createElement('div');
-    panelContainer.innerHTML = renderEpisodePanelHtml(id, p[1]);
-    wrapper.appendChild(panelContainer.firstElementChild);
-  }
-
-  (byId[id]=byId[id]||[]).push({id,l:wrapper,c,lk,p});
-  return {id,l:wrapper,c,lk,p};
-}
-
-// 在系統初始化中加入資料自動遷移
-migrateOldData();
-
-
-
-  root.appendChild(d);secs.push({sm,items,o:!!s[2]});
-
-});
-
-const TLD=[['起點與第一階段','瓦干達之眼/美國隊長/卡特探員（短片）/驚奇隊長/鋼鐵人/鋼鐵人2/無敵浩克/前往雷神之鎚途中發生的趣事/雷神索爾/神盾顧問/復仇者聯盟'],['第二階段前期','第47號物品/雷神索爾2：黑暗世界/鋼鐵人3/向王者致敬/美國隊長2：酷寒戰士/星際異攻隊/星際異攻隊2/我是格魯特 第1季/我是格魯特 第2季'],['街頭英雄登場','夜魔俠 第1季/潔西卡・瓊斯 第1季/復仇者聯盟：奧創紀元/蟻人/夜魔俠 第2季/漫威：盧克・凱奇/鐵拳俠 第1季/捍衛者聯盟'],['英雄內戰到終局之戰','美國隊長3：英雄內戰/黑寡婦/黑豹/蜘蛛人：返校日/制裁者/奇異博士/潔西卡・瓊斯 第2季/漫威：盧克・凱奇第2季/鐵拳俠 第2季/夜魔俠 第3季/雷神索爾3：諸神黃昏/制裁者 第2季/潔西卡・瓊斯 第3季/蟻人與黃蜂女/復仇者聯盟：無限之戰/復仇者聯盟：終局之戰'],['多重宇宙時代','洛基 第1季/無限可能：假如…？第1季/漫威喪屍/汪達幻視/尚氣與十環傳奇/獵鷹與酷寒戰士/蜘蛛人：離家日/永恆族/蜘蛛人：無家日/奇異博士2：失控多重宇宙/鷹眼/月光騎士/黑豹2：瓦干達萬歲/回聲女/律師女浩克/驚奇少女/雷神索爾4：愛與雷霆/鋼鐵心/暗夜狼人（特別篇）/星際異攻隊：聖誕特別篇'],['最新作品','蟻人與黃蜂女：量子狂熱/星際異攻隊3/秘密入侵/驚奇隊長2/洛基 第2季/無限可能：假如…？第2季/死侍與金鋼狼/阿嘉莎：無所不在/無限可能：假如…？第3季/夜魔俠：重生 第1季/美國隊長：無畏新世界/雷霆特攻隊*/驚奇4超人：第一步/神力人/夜魔俠：重生 第2季/制裁者：最後一擊/幻視任務'],['尚未上映（官方時間線尚未收錄）','復仇者聯盟：末日之戰（12月18日）/蜘蛛人：你的友好鄰居 第2季（1月13日）/夜魔俠：重生 第3季（最終季，2027年）/漫威喪屍特別篇：冬兵（暫譯，萬聖節）/漫威喪屍特別篇：孔蘇之拳（暫譯，萬聖節）/漫威喪屍特別篇：最後的守護者（暫譯，2029年）/復仇者聯盟：秘密戰爭（12月17日）/X戰警（暫譯，5月5日）/惡靈戰警（7月28日）/黑豹3（12月15日）/十二宮間諜影集（暫譯，預計2028）']];
-
-const tls=[],tl=document.getElementById('tl');
-
-let tn=0;
-
-tl.innerHTML='<p class="sub">完整時間線（電影＋影集），對應 Disney+「MCU Complete Timeline」，依故事內順序排列，勾選與「上映順序」共用。</p>';
-
-const tlItems=[];
-
-TLD.forEach((g,k)=>{
-
-  const d=document.createElement('details');d.open=k===0;
-
-  const sm=document.createElement('summary');
-
-  sm.innerHTML='<span>'+g[0]+'</span><span class="n"></span>';
-
-  d.appendChild(sm);const items=[];
-
-  g[1].split('/').forEach(t=>{
-
-    const m=MAP[t];if(!m)return;
-
-    const o=mk([++tn,t,m.p[2],m.p[3]],m.id);d.appendChild(o.l);items.push(o);
-
-    tlItems.push(o);
-
-  });
-
-  tl.appendChild(d);tls.push({n:sm.querySelector('.n'),items});
-
-});
-
-const tlm=document.getElementById('tlm');
-
-tlm.innerHTML='<p class="sub">只含電影（不含影集與短片），對應 Disney+「MCU Movie Timeline」，依故事內順序排列，勾選與完整時間線共用。</p>';
-
-let tm=0;
-
-const tlmItems=[];
-
-TLD.forEach((g,k)=>{
-
-  const ts=g[1].split('/').filter(t=>MAP[t]&&MAP[t].p[2]==='M');
-
-  if(!ts.length)return;
-
-  const d=document.createElement('details');d.open=k===0;
-
-  const sm=document.createElement('summary');
-
-  sm.innerHTML='<span>'+g[0]+'</span><span class="n"></span>';
-
-  d.appendChild(sm);const items=[];
-
-  ts.forEach(t=>{
-
-    const m=MAP[t],o=mk([++tm,t,'M',m.p[3]],m.id);d.appendChild(o.l);items.push(o);
-
-    tlmItems.push(o);
-
-  });
-
-  tlm.appendChild(d);tls.push({n:sm.querySelector('.n'),items});
-
-});
-
-function startPosterLoader(){
-  const apiKey = TMDB_API_KEY.trim();
-  if (!apiKey || apiKey.includes('請填入')) { console.warn('TMDB API key 未設定'); return; }
-  const CACHE_KEY = 'mcu-tmdb-posters-v12';
-  let cache = {};
-  try { cache = JSON.parse(localStorage.getItem(CACHE_KEY) || '{}') || {}; } catch(e) {}
-  const itemsById = Object.fromEntries(Object.keys(byId).map(id => [id, byId[id][0]]));
-  const queue = [], pending = new Set();
-  // 限制每次 TMDB API 請求的間隔，避免同一作品的多個別名搜尋瞬間觸發 429。
-  let lastRequestAt = 0;
-  const headers = apiKey.includes('.') ? {Authorization: 'Bearer ' + apiKey} : {};
-  const overrideIds = {
-    '刀鋒戰士': {type:'movie',id:36647},
-    'X戰警': {type:'movie',id:36657},
-    '制裁者': {type:'tv',id:67178},
-    '制裁者 第2季': {type:'tv',id:67178,season:2},
-    '制裁者：最後一擊': {type:'movie',id:1439930},
-    '漫威未來復仇者': {type:'tv',id:91278},
-    '蜘蛛人：新宇宙': {type:'movie',id:324857},
-    '蜘蛛人：穿越新宇宙': {type:'movie',id:569094},
-    '暗夜狼人（特別篇）': {type:'movie',id:894205},
-    '星際異攻隊：聖誕特別篇': {type:'movie',id:774752},
-    '蜘蛛人與神奇朋友': {type:'tv',id:1269},
-    '蜘蛛人動畫影集': {type:'tv',id:888}
-  };
-  const setPoster = (id,url) => {
-    (byId[id] || []).forEach(o => {
-      const img=o.l.querySelector('.poster');
-      if(img && url && img.getAttribute('src') !== url) img.src=url;
-    });
-  };
-  const endpoint = async (path,params={}) => {
-    const waitMs = Math.max(0, 300 - (Date.now() - lastRequestAt));
-    if (waitMs) await new Promise(r => setTimeout(r, waitMs));
-    lastRequestAt = Date.now();
-    const url=new URL('https://api.themoviedb.org/3/'+path.replace(/^\//,''));
-    if(!apiKey.includes('.'))url.searchParams.set('api_key',apiKey);
-    for(const [k,v] of Object.entries(params))url.searchParams.set(k,v);
-    let response;
-    for(let attempt=0;attempt<3;attempt++){
-      response=await fetch(url,{headers});
-      if(response.status!==429 && response.status<500)break;
-      await new Promise(r=>setTimeout(r,800*Math.pow(2,attempt)));
-    }
-    if(!response.ok)throw new Error('TMDB HTTP '+response.status+' ('+path+')');
-    return response.json();
-  };
-  const pickPoster = async (type,id,season) => {
-    const detail=await endpoint(type+'/'+id,{language:'zh-TW'});
-    let path=detail.poster_path||'';
-    if(!path){
-      const imgs=await endpoint(type+'/'+id+'/images',{include_image_language:'zh,en,null'});
-      path=choosePoster(imgs.posters)||'';
-    }
-    if(type==='tv' && Number.isInteger(season)){
-      try {
-        const info=await endpoint('tv/'+id+'/season/'+season,{language:'zh-TW'});
-        let seasonPath=info.poster_path||'';
-        if(!seasonPath){
-          const imgs=await endpoint('tv/'+id+'/season/'+season+'/images',{include_image_language:'zh,en,null'});
-          seasonPath=choosePoster(imgs.posters)||'';
-        }
-        if(seasonPath)path=seasonPath;
-      }catch(e){console.warn('TMDB 季別海報查詢失敗，改用影集海報：',id,season,e);}
-    }
-    return path;
-  };
-  function choosePoster(posters){
-    const sorted=[...(posters||[])].sort((a,b)=>(b.vote_average||0)-(a.vote_average||0));
-    return (sorted.find(x=>x.iso_639_1==='zh')||sorted.find(x=>x.iso_639_1==='en')||sorted.find(x=>x.iso_639_1===null)||sorted[0])?.file_path||'';
-  }
-    const REF_KEY='mcu-tmdb-refs-v1';
-  let refs={};
-  try{refs=JSON.parse(localStorage.getItem(REF_KEY)||'{}')||{}}catch(e){}
-  const saveRefs=()=>{try{localStorage.setItem(REF_KEY,JSON.stringify(refs))}catch(e){}};
-
-  async function resolveRef(item){
-    const [year,title,category]=item.p;
-    const seasonInfo=parseSeasonTitle(title);
-    const base=seasonInfo?.queryTitle||title;
-    const override=overrideIds[title];
-    if(override)return {type:override.type,id:override.id,season:override.season??seasonInfo?.number};
-    const aliases=posterTitleVariants(base);
-    const isAnimation=category==='A';
-    const animatedMovieTitles=new Set([
-      ...(D.find(group=>group[0]==='動畫長片與直接發行影片')?.[1]||[]).map(r=>r.split('|')[1]),
-      '蜘蛛人：新宇宙','蜘蛛人：穿越新宇宙','蜘蛛人：超越新宇宙（6月18日，暫定）'
-    ]);
-    const isAnimatedMovie=isAnimation && animatedMovieTitles.has(title);
-    const desiredType=isAnimation?(isAnimatedMovie?'movie':'tv'):(['M','F','S','O','P'].includes(category)?'movie':'tv');
-    const results=new Map();
-    for(const query of aliases){
-      const data=await endpoint('search/'+desiredType,{query,language:/[\u3400-\u9fff]/.test(query)?'zh-TW':'en-US',include_adult:'false'});
-      for(const result of (data.results||[]))results.set(result.id,{...result,media_type:desiredType});
-    }
-    const targets=aliases.map(normTitle);
-    let best=null,bestScore=-Infinity;
-    for(const result of results.values()){
-      const candidates=[result.title,result.name,result.original_title,result.original_name].filter(Boolean).map(normTitle);
-      let match=0;
-      for(const target of targets)for(const candidate of candidates){
-        if(candidate===target)match=Math.max(match,20);
-        else if(target.length>=4 && (candidate.includes(target)||target.includes(candidate)))match=Math.max(match,8);
-      }
-      if(!match)continue;
-      const resultYear=Number((result.release_date||result.first_air_date||'').slice(0,4));
-      const delta=resultYear?Math.abs(resultYear-Number(year)):0;
-      const score=match+(resultYear===Number(year)?7:0)-Math.min(delta,10)+(result.poster_path?2:0);
-      if(score>bestScore){best=result;bestScore=score;}
-    }
-    if(!best){console.warn('TMDB 找不到匹配作品：',title,'搜尋名稱：',aliases);return null;}
-    return {type:desiredType,id:best.id,season:seasonInfo?.number};
-  }
-
-  async function resolvePoster(item){
-    const ref=await resolveRef(item);
-    if(!ref)return '';
-    refs[item.id]=ref;saveRefs();
-    const path=await pickPoster(ref.type,ref.id,ref.season);
-    if(!path)console.warn('TMDB 已找到作品，但沒有可用海報：',item.p[1],ref.type,ref.id);
-    return path?'https://image.tmdb.org/t/p/w185'+path:'';
-  }
-
-  // ===== 點海報看大圖、簡介、演員 =====
-  const modal=document.createElement('div');
-  modal.id='info';modal.hidden=true;
-  modal.innerHTML='<div class="box"><button class="x" type="button" aria-label="關閉">✕</button><div class="body"></div></div>';
-  document.body.appendChild(modal);
-  const body=modal.querySelector('.body');
-  let openId=null;
-  const closeInfo=()=>{modal.hidden=true;openId=null};
-  modal.addEventListener('click',e=>{if(e.target===modal||e.target.classList.contains('x'))closeInfo()});
-  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeInfo()});
-  const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-
-  async function showInfo(id,src){
-    const item=itemsById[id];if(!item)return;
-    openId=id;
-    const head='<img src="'+esc(src.replace('/w185/','/w500/'))+'" alt=""><h2>'+esc(item.p[1])+'</h2><p class="cast">'+esc(item.p[0])+'</p>';
-    body.innerHTML=head+'<p>載入中…</p>';modal.hidden=false;
-    try{
-      let ref=refs[id];
-      if(!ref){ref=await resolveRef(item);if(ref){refs[id]=ref;saveRefs();}}
-      if(openId!==id)return;
-      if(!ref){body.innerHTML=head+'<p>找不到這部作品的資料</p>';return}
-      const detail=await endpoint(ref.type+'/'+ref.id,{language:'zh-TW',append_to_response:'credits'});
-      let overview=detail.overview||'',credits=detail.credits;
-      if(ref.type==='tv'&&Number.isInteger(ref.season)){
-        try{
-          const s=await endpoint('tv/'+ref.id+'/season/'+ref.season,{language:'zh-TW',append_to_response:'credits'});
-          if(s.overview)overview=s.overview;
-          if(s.credits&&s.credits.cast&&s.credits.cast.length)credits=s.credits;
-        }catch(e){}
-      }
-      if(openId!==id)return;
-      const cast=((credits&&credits.cast)||[]).slice(0,8).map(c=>esc(c.name)+(c.character?'（飾 '+esc(c.character)+'）':'')).join('、');
-      body.innerHTML=head+'<p>'+(overview?esc(overview):'目前沒有中文簡介')+'</p>'+(cast?'<p class="cast"><b>演員：</b>'+cast+'</p>':'');
-    }catch(e){
-      if(openId===id)body.innerHTML=head+'<p>資料載入失敗，請稍後再試</p>';
-      console.error('TMDB 簡介載入失敗：',item.p[1],e);
-    }
-  }
-
-  // 點海報：開預覽，同時不要勾選（preventDefault 會擋掉「點標籤就勾選」的動作）
-  document.addEventListener('click',e=>{
-    const img=e.target;
-    if(!(img instanceof HTMLImageElement)||!img.classList.contains('poster')||!img.getAttribute('src'))return;
-    e.preventDefault();e.stopPropagation();
-    showInfo(img.dataset.posterId,img.src);
-  },true);
-
-
-  let busy=false;
-  async function run(){
-    if(busy)return;busy=true;
-    while(queue.length){
-      const item=queue.shift();
-      try{
-        const poster=await resolvePoster(item);
-        if(poster){cache[item.id]=poster;setPoster(item.id,poster);localStorage.setItem(CACHE_KEY,JSON.stringify(cache));}
-      }catch(e){console.error('TMDB 海報載入失敗：',item.p[1],e);}
-      finally{pending.delete(item.id);}
-      await new Promise(r=>setTimeout(r,350));
-    }
-    busy=false;
-  }
-  const observer=new IntersectionObserver(entries=>{
-    for(const entry of entries){
-      if(!entry.isIntersecting)continue;
-      const img=entry.target;observer.unobserve(img);
-      const id=img.dataset.posterId,item=itemsById[id];
-      if(item && !pending.has(id) && !cache[id]){pending.add(id);queue.push(item);}
-    }
-    run();
-  },{rootMargin:'180px'});
+const lk=p[3]&&now<new Date(p[3]),m=MUST.has(p[1]);
+const isMovie = !(['D','N','B'].includes(p[2]) || p[1].includes('季') || p[1].includes('影集'));
+const wrapper = document.createElement('div');
+wrapper.className = 'item-wrapper';
+wrapper.style.width = '100%';
+const l=document.createElement('label');l.className='it'+(lk?' lock':'')+(m?' must':'');
   Object.values(itemsById).forEach(item=>{
     if(cache[item.id]){setPoster(item.id,cache[item.id]);return;}
     (byId[item.id]||[]).forEach(o=>{const img=o.l.querySelector('.poster');if(img)observer.observe(img);});
