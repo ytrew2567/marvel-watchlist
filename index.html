@@ -879,7 +879,12 @@ function refresh(){
 
   }
 
-  if(mu)targetIemst=targetItems.filter(x=>x.l.classList.contains('must'));
+ if(mu)
+{
+    targetItems = targetItems.filter(
+        x=>x.l.classList.contains('must')
+    );
+}
   
   const b=targetItems.length;
 
